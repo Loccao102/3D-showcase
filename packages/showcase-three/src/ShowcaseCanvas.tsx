@@ -1,8 +1,9 @@
 "use client";
 
-import { Environment, OrbitControls, ContactShadows } from "@react-three/drei";
+import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import type {
+  EnvironmentDefinition,
   RenderPolicy,
   ShowcaseManifest,
 } from "@showcase/core";
@@ -16,15 +17,16 @@ export interface ShowcaseCanvasProps {
   className?: string;
 }
 
+type EnvironmentPreset = Exclude<
+  NonNullable<EnvironmentDefinition["preset"]>,
+  "neutral"
+>;
+
 function mapEnvironmentPreset(
-  preset: ShowcaseManifest["scene"]["environment"] extends infer T
-    ? T extends { preset?: infer P }
-      ? P
-      : never
-    : never,
-) {
+  preset: EnvironmentDefinition["preset"],
+): EnvironmentPreset {
   if (!preset || preset === "neutral") {
-    return "studio" as const;
+    return "studio";
   }
 
   return preset;
@@ -44,13 +46,23 @@ export function ShowcaseCanvas({
   const position = initialCamera?.position ?? ([4.6, 2.4, 6.4] as const);
   const target = initialCamera?.target ?? ([0, 0.7, 0] as const);
   const fov = initialCamera?.fov ?? 42;
+  const cameraPosition: [number, number, number] = [
+    position[0],
+    position[1],
+    position[2],
+  ];
+  const controlsTarget: [number, number, number] = [
+    target[0],
+    target[1],
+    target[2],
+  ];
 
   return (
     <div className={className} data-quality={renderPolicy.quality}>
       <Canvas
         dpr={renderPolicy.maxDpr}
         frameloop="demand"
-        camera={{ position: [...position], fov, near: 0.1, far: 150 }}
+        camera={{ position: cameraPosition, fov, near: 0.1, far: 150 }}
         gl={{
           antialias: renderPolicy.quality !== "low",
           alpha: true,
@@ -81,7 +93,7 @@ export function ShowcaseCanvas({
           ) : null}
           <OrbitControls
             makeDefault
-            target={[...target]}
+            target={controlsTarget}
             enablePan={false}
             minDistance={2.4}
             maxDistance={10}
