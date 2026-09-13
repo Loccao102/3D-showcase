@@ -98,10 +98,10 @@ export interface ShowcaseManifest {
 export interface DeviceCapabilities {
   viewportWidth: number;
   devicePixelRatio: number;
-  deviceMemoryGb?: number;
-  hardwareConcurrency?: number;
-  saveData?: boolean;
-  prefersReducedMotion?: boolean;
+  deviceMemoryGb?: number | undefined;
+  hardwareConcurrency?: number | undefined;
+  saveData?: boolean | undefined;
+  prefersReducedMotion?: boolean | undefined;
 }
 
 export interface RenderPolicy {
