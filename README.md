@@ -1,36 +1,58 @@
-# 3D Showcase — Automotive Commerce Platform
+# 3D Showcase
 
-A 3D-first automotive commerce platform where customers can explore, configure, compare, and reserve vehicles in an interactive showroom.
+A reusable, 3D-first product showcase platform.
 
-## Product direction
+The **showcase engine is the product**. Automotive is only the first vertical used to prove the platform. Commerce, lead generation, reservations, and checkout are optional modules layered on top of the showcase instead of being baked into it.
 
-The first vertical is automotive sales. The platform is designed so other 3D product categories can be added later without rebuilding the core commerce system.
+## First vertical: automotive
 
-Core journey:
+The first experience is a premium car showroom where visitors can inspect a vehicle, rotate and zoom it, discover hotspots, switch configurable variants, and later continue into quote / reservation flows.
 
-`Discover → Explore in 3D → Configure → Compare → Request quote / Book test drive → Reserve → Order tracking`
+The same core should be reusable for furniture, electronics, real-estate units, industrial equipment, fashion products, museum objects, or other products that benefit from interactive 3D presentation.
 
-## Planned capabilities
+## Architecture at a glance
 
-- Interactive 3D vehicle showroom
-- Vehicle configurator: paint, wheels, trim, interior and options
-- Hotspots for feature discovery
-- Vehicle catalog, filters and search
-- Saved configurations and shareable configuration links
-- Compare vehicles/configurations
-- Quote requests and test-drive booking
-- Reservation / deposit workflow
-- Customer account and order tracking
-- Dealer/inventory support
-- Admin/CMS for cars, variants, assets, prices and campaigns
-- Analytics events for 3D interactions and conversion funnels
+```text
+apps/web (Next.js)
+  ├─ product pages / navigation / SEO
+  ├─ responsive DOM interface
+  └─ mounts showcase renderer
+        │
+        ├─ packages/showcase-core     # product-agnostic contracts + runtime state
+        ├─ packages/showcase-three    # Three.js / React Three Fiber renderer
+        └─ vertical adapters          # automotive first, others later
 
-## Architecture
+apps/api (Go + Gin)
+  ├─ showcase manifests
+  ├─ product/catalog metadata
+  └─ optional commerce capabilities later
+```
 
-The project will use a modular architecture so the 3D experience, commerce domain and back-office can evolve independently.
+## Principles
 
-See the documents in `/docs` as they are added.
+- 3D showcase core is domain-neutral.
+- Automotive-specific concepts never leak into the rendering core.
+- Commerce is optional and replaceable.
+- Progressive enhancement: a useful non-3D fallback must exist.
+- Mobile, tablet, desktop, touch, mouse and keyboard are first-class targets.
+- 3D assets have explicit budgets, LODs and compressed delivery paths.
+- UI remains normal accessible DOM; the canvas is not the entire application.
+
+## Technology
+
+- Next.js + TypeScript
+- React Three Fiber + Three.js + Drei
+- Zustand for local experience state when needed
+- Go + Gin for the API
+- GLB/glTF, Meshopt/Draco and KTX2 as the intended production asset pipeline
 
 ## Repository status
 
-Foundation phase.
+Foundation work is being developed on `foundation/automotive-commerce`.
+
+See:
+
+- `docs/ARCHITECTURE.md`
+- `docs/SHOWCASE_CONTRACT.md`
+- `docs/DEVICE_STRATEGY.md`
+- `docs/SKILLS.md`
