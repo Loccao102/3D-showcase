@@ -1,3 +1,35 @@
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 9px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: #0b1017;
+  color: var(--text);
+  font-size: 12px;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 140ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .showcase-poster {
   position: absolute;
   inset: 0;
@@ -72,9 +104,9 @@
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
 }
 
-.stage-detail-card strong {
+.stage-detail-title {
   display: block;
-  margin-top: 8px;
+  margin: 8px 0 0;
   color: var(--text);
   font-size: 18px;
   font-weight: 550;
@@ -176,7 +208,14 @@
   text-transform: uppercase;
 }
 
-.config-group-heading span:last-child {
+.config-group-heading h3 {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+}
+
+.config-group-heading > span:last-child {
   color: #5f6873;
   font-size: 8px;
 }
@@ -193,6 +232,7 @@
 }
 
 .selection-snapshot {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -203,7 +243,7 @@
   min-width: 0;
 }
 
-.selection-snapshot span {
+.selection-snapshot > div > span {
   display: block;
   margin-bottom: 7px;
   color: #d6dbe0;
@@ -317,6 +357,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .skip-link,
   .showcase-poster,
   .showcase-hotspot,
   .stage-detail-card {
