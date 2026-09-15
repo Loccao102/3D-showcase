@@ -9,6 +9,7 @@ import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   Component,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -20,7 +21,10 @@ import {
   Material,
   Mesh,
   Object3D,
+  type WebGLRenderer,
 } from "three";
+import { AssetEntrance } from "./AssetEntrance";
+import { resolveGltfDelivery } from "./GltfDelivery";
 
 export type AssetRuntimeStatus = "loading" | "ready" | "error";
 
@@ -28,11 +32,41 @@ export interface AssetRuntimeEvent {
   assetId: string;
   status: AssetRuntimeStatus;
   url?: string | undefined;
+  durationMs?: number | undefined;
   error?: Error | undefined;
+}
+
+const assetLoadStartedAt = new Map<string, number>();
+const completedAssetLoads = new Set<string>();
+
+function nowMs() {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
+function assetLoadKey(assetId: string, url: string) {
+  return `${assetId}:${url}`;
+}
+
+function markAssetLoadStarted(assetId: string, url: string) {
+  const key = assetLoadKey(assetId, url);
+  if (completedAssetLoads.has(key) || assetLoadStartedAt.has(key)) {
+    return;
+  }
+
+  assetLoadStartedAt.set(key, nowMs());
+}
+
+function consumeAssetLoadDuration(assetId: string, url: string) {
+  const key = assetLoadKey(assetId, url);
+  const startedAt = assetLoadStartedAt.get(key);
+  assetLoadStartedAt.delete(key);
+  completedAssetLoads.add(key);
+  return startedAt === undefined ? undefined : Math.max(0, nowMs() - startedAt);
 }
 
 interface AssetBoundaryProps {
   asset: AssetSource;
+  url?: string | undefined;
   onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
   children: ReactNode;
 }
@@ -49,9 +83,16 @@ class AssetBoundary extends Component<AssetBoundaryProps, AssetBoundaryState> {
   }
 
   componentDidCatch(error: Error, _info: ErrorInfo) {
+    const url = this.props.url;
     this.props.onRuntimeEvent?.({
       assetId: this.props.asset.id,
       status: "error",
+      ...(url
+        ? {
+            url,
+            durationMs: consumeAssetLoadDuration(this.props.asset.id, url),
+          }
+        : {}),
       error,
     });
   }
@@ -107,9 +148,24 @@ function assetTransformProps(asset: AssetSource) {
   };
 }
 
+interface AssetLoadingProps {
+  asset: AssetSource;
+  url: string;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
+}
+
+function AssetLoading({ asset, url, onRuntimeEvent }: AssetLoadingProps) {
+  useEffect(() => {
+    onRuntimeEvent?.({ assetId: asset.id, status: "loading", url });
+  }, [asset.id, onRuntimeEvent, url]);
+
+  return null;
+}
+
 interface GltfAssetProps {
   asset: AssetSource;
   url: string;
+  reducedMotion: boolean;
   animationBindings: readonly Extract<
     VariantBinding,
     { type: "animation-state" }
@@ -120,17 +176,34 @@ interface GltfAssetProps {
 function GltfAsset({
   asset,
   url,
+  reducedMotion,
   animationBindings,
   onRuntimeEvent,
 }: GltfAssetProps) {
-  const gltf = useGLTF(url);
+  const renderer = useThree((state) => state.gl) as WebGLRenderer;
+  const delivery = useMemo(
+    () => resolveGltfDelivery(asset, renderer),
+    [asset, renderer],
+  );
+  const gltf = useGLTF(
+    url,
+    delivery.useDraco,
+    delivery.useMeshopt,
+    delivery.extendLoader,
+  );
   const runtimeScene = useMemo(() => cloneScene(gltf.scene), [gltf.scene]);
   const mixerRef = useRef<AnimationMixer | null>(null);
   const hasActiveAnimationRef = useRef(false);
   const invalidate = useThree((state) => state.invalidate);
 
   useEffect(() => {
-    onRuntimeEvent?.({ assetId: asset.id, status: "ready", url });
+    const durationMs = consumeAssetLoadDuration(asset.id, url);
+    onRuntimeEvent?.({
+      assetId: asset.id,
+      status: "ready",
+      url,
+      ...(durationMs === undefined ? {} : { durationMs }),
+    });
   }, [asset.id, onRuntimeEvent, url]);
 
   useEffect(() => {
@@ -182,7 +255,9 @@ function GltfAsset({
       {...assetTransformProps(asset)}
       userData={{ showcaseAssetId: asset.id, showcaseSlot: asset.slot }}
     >
-      <primitive object={runtimeScene} />
+      <AssetEntrance reducedMotion={reducedMotion}>
+        <primitive object={runtimeScene} />
+      </AssetEntrance>
     </group>
   );
 }
@@ -194,7 +269,7 @@ interface PrimitiveAssetProps {
 
 function PrimitiveAsset({ asset, onRuntimeEvent }: PrimitiveAssetProps) {
   useEffect(() => {
-    onRuntimeEvent?.({ assetId: asset.id, status: "ready" });
+    onRuntimeEvent?.({ assetId: asset.id, status: "ready", durationMs: 0 });
   }, [asset.id, onRuntimeEvent]);
 
   const color =
@@ -234,6 +309,7 @@ function MissingAsset({ asset, onRuntimeEvent }: MissingAssetProps) {
 export interface ShowcaseAssetProps {
   asset: AssetSource;
   viewportWidth: number;
+  reducedMotion?: boolean | undefined;
   animationBindings?:
     | readonly Extract<VariantBinding, { type: "animation-state" }>[]
     | undefined;
@@ -243,18 +319,11 @@ export interface ShowcaseAssetProps {
 export function ShowcaseAsset({
   asset,
   viewportWidth,
+  reducedMotion = false,
   animationBindings = [],
   onRuntimeEvent,
 }: ShowcaseAssetProps) {
   const url = resolveAssetUrl(asset, viewportWidth);
-
-  useEffect(() => {
-    onRuntimeEvent?.(
-      url
-        ? { assetId: asset.id, status: "loading", url }
-        : { assetId: asset.id, status: "loading" },
-    );
-  }, [asset.id, onRuntimeEvent, url]);
 
   if (asset.kind === "primitive") {
     return <PrimitiveAsset asset={asset} onRuntimeEvent={onRuntimeEvent} />;
@@ -264,14 +333,23 @@ export function ShowcaseAsset({
     return <MissingAsset asset={asset} onRuntimeEvent={onRuntimeEvent} />;
   }
 
+  markAssetLoadStarted(asset.id, url);
+
   return (
-    <AssetBoundary asset={asset} onRuntimeEvent={onRuntimeEvent}>
-      <GltfAsset
-        asset={asset}
-        url={url}
-        animationBindings={animationBindings}
-        onRuntimeEvent={onRuntimeEvent}
-      />
+    <AssetBoundary key={url} asset={asset} url={url} onRuntimeEvent={onRuntimeEvent}>
+      <Suspense
+        fallback={
+          <AssetLoading asset={asset} url={url} onRuntimeEvent={onRuntimeEvent} />
+        }
+      >
+        <GltfAsset
+          asset={asset}
+          url={url}
+          reducedMotion={reducedMotion}
+          animationBindings={animationBindings}
+          onRuntimeEvent={onRuntimeEvent}
+        />
+      </Suspense>
     </AssetBoundary>
   );
 }

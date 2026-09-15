@@ -10,6 +10,7 @@ Showcase Engine V1 core is now functionally complete. This file separates comple
 - [x] create semantic node/material lookup
 - [x] expose named anchors
 - [x] provide asset loading / ready / failure states
+- [x] emit per-asset readiness/error duration for host telemetry
 - [x] show a fallback poster before the interactive asset is ready
 - [x] keep product-specific traversal out of UI components
 - [x] clone runtime materials so configuration does not mutate loader cache
@@ -70,11 +71,15 @@ The automotive screen is a proof fixture, not part of the engine API.
 
 ## Production asset hardening — next
 
-These are content-pipeline/QA tasks and no longer block the generic Showcase Engine V1 architecture:
+The runtime plumbing for compressed production delivery is now present, but browser/device validation stays open until a real asset exists.
 
+- [x] keep Meshopt enabled through the generic Drei `useGLTF` path
+- [x] support optional KTX2/Basis textures through manifest delivery metadata
+- [x] self-host the Basis transcoder from the installed Three.js version before dev/build
+- [x] keep Draco explicit opt-in so normal assets do not create a hidden decoder dependency
 - [ ] replace the tiny reference glTF with a production-quality licensed/self-created vehicle asset
 - [ ] produce real LOD0 / LOD1 / LOD2 geometry
-- [ ] validate KTX2/Basis texture delivery on representative browsers
+- [ ] validate KTX2/Basis texture delivery on representative browsers using the production asset
 - [ ] validate Meshopt compression/decode tradeoffs on representative devices
 - [ ] document measured texture/geometry/network budgets for the production asset
 - [ ] validate semantic naming against the production asset
@@ -83,7 +88,10 @@ These are content-pipeline/QA tasks and no longer block the generic Showcase Eng
 ## Device / performance QA — next
 
 - [ ] record loading timings for the production asset
-- [ ] add sustained frame-time telemetry if adaptive degradation is required
+- [x] expose per-asset load/readiness durations to the host
+- [x] add active-frame telemetry for demand rendering
+- [x] add sustained frame-time adaptive quality degradation with cooldown
+- [x] degrade DPR/shadows/post-processing without touching selection or camera state
 - [ ] profile a representative mid-range Android device
 - [ ] profile iOS Safari
 - [ ] profile tablet landscape/portrait
@@ -91,10 +99,10 @@ These are content-pipeline/QA tasks and no longer block the generic Showcase Eng
 
 ## Visual/motion polish — next
 
-- [ ] integrate final Vietnamese-capable display/body font pair
-- [ ] light-cut arrival reveal
-- [ ] perceptual material morph rather than instant color mutation
-- [ ] richer spatial product swap transition
+- [x] integrate Darker Grotesque + Be Vietnam Pro as self-hosted Vietnamese-capable display/body fonts
+- [x] light-cut arrival reveal with reduced-motion fallback
+- [x] perceptual material color morph instead of instant mutation
+- [x] generic spatial asset replacement entrance with reduced-motion fallback
 - [ ] optional high-tier ambient drift
 - [ ] final accessibility audit for contrast, screen reader announcements and keyboard order
 

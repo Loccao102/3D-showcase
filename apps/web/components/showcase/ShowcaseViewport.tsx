@@ -1,8 +1,10 @@
 "use client";
 
 import type {
+  FramePerformanceSample,
   Hotspot,
   RenderPolicy,
+  RenderQuality,
   ShowcaseManifest,
   VariantBinding,
 } from "@showcase/core";
@@ -26,6 +28,8 @@ export interface ShowcaseViewportProps {
   onHotspotSelect?: ((hotspot: Hotspot) => void) | undefined;
   onUserInteract?: (() => void) | undefined;
   onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
+  onPerformanceSample?: ((sample: FramePerformanceSample) => void) | undefined;
+  onQualitySuggestion?: ((quality: RenderQuality) => void) | undefined;
 }
 
 export default function ShowcaseViewport({
@@ -39,6 +43,8 @@ export default function ShowcaseViewport({
   onHotspotSelect,
   onUserInteract,
   onAssetRuntimeEvent,
+  onPerformanceSample,
+  onQualitySuggestion,
 }: ShowcaseViewportProps) {
   const sceneMutationBindings = useMemo(
     () =>
@@ -57,12 +63,18 @@ export default function ShowcaseViewport({
       activeCameraPresetId={activeCameraPresetId}
       cameraRequestKey={cameraRequestKey}
       onUserInteract={onUserInteract}
+      onPerformanceSample={onPerformanceSample}
+      onQualitySuggestion={onQualitySuggestion}
     >
-      <ShowcaseRuntime bindings={sceneMutationBindings}>
+      <ShowcaseRuntime
+        bindings={sceneMutationBindings}
+        materialTransitionMs={renderPolicy.preferReducedMotion ? 0 : 220}
+      >
         <ShowcaseScene
           manifest={manifest}
           bindings={bindings}
           viewportWidth={viewportWidth}
+          reducedMotion={renderPolicy.preferReducedMotion}
           onAssetRuntimeEvent={onAssetRuntimeEvent}
         />
       </ShowcaseRuntime>

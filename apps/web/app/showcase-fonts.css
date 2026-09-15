@@ -1,0 +1,25 @@
+body {
+  font-family: var(--font-showcase-body), Arial, Helvetica, sans-serif;
+}
+
+.brand,
+.showcase-copy h1,
+.config-heading h2,
+.stage-detail-card strong {
+  font-family: var(--font-showcase-display), var(--font-showcase-body), Arial, sans-serif;
+}
+
+.showcase-copy h1 {
+  font-weight: 600;
+  font-feature-settings: "kern" 1;
+}
+
+.brand {
+  font-weight: 700;
+}
+
+.lede,
+.architecture-note p,
+.stage-detail-card p:not(.panel-kicker) {
+  letter-spacing: -0.01em;
+}
