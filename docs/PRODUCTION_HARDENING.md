@@ -2,21 +2,25 @@
 
 Showcase Engine V1 is domain-neutral and complete. This document defines the production gate for real showcase assets and representative devices.
 
-## Delivery metadata
+## Delivery contract
 
-Asset delivery tuning stays outside product-specific UI code. A glTF asset can opt into loader behavior through `AssetSource.metadata.delivery`:
+Asset delivery tuning stays outside product-specific UI code. `AssetSource` now exposes typed delivery and budget contracts:
 
 ```ts
 {
   id: "vehicle-lod0",
   kind: "gltf",
   url: "/models/vehicle-lod0.glb",
-  metadata: {
-    delivery: {
-      meshopt: true,
-      draco: false,
-      ktx2TranscoderPath: "/basis/"
-    }
+  delivery: {
+    meshopt: true,
+    draco: false,
+    ktx2TranscoderPath: "/basis/"
+  },
+  budget: {
+    triangleCount: 180000,
+    geometryBytes: 4200000,
+    textureBytes: 7600000,
+    transferBytes: 9400000
   }
 }
 ```
@@ -27,7 +31,31 @@ Rules:
 - KTX2 is enabled only when `ktx2TranscoderPath` is supplied.
 - The web app copies the Basis transcoder bundled with the installed Three.js version into `public/basis` before `dev` and `build`, avoiding a mismatched CDN decoder.
 - A single KTX2 loader instance is reused per renderer/transcoder path.
-- Draco remains available when a source asset requires it, but Meshopt is the preferred default for the showcase pipeline.
+- Draco is explicit opt-in; normal assets do not create a hidden decoder/network dependency.
+- Legacy `metadata.delivery` is still read for backwards compatibility, but new manifests should use `AssetSource.delivery`.
+
+## Asset registry gate
+
+`config/showcase-assets.json` is the source of truth for files that CI is allowed to treat as showcase assets.
+
+The validator supports JSON glTF and binary GLB. It verifies:
+
+- unique registry IDs,
+- glTF/GLB version and chunk integrity,
+- bufferView/accessor ranges,
+- required semantic nodes,
+- required glTF extensions,
+- fallback asset existence,
+- deterministic fixture material rules.
+
+Entries marked `stage: "production"` are held to a stricter policy. CI rejects them unless they provide:
+
+- source ownership (`self-created` or `licensed`) and license text,
+- fallback imagery,
+- LOD0, LOD1 and LOD2 files,
+- positive measured triangle, geometry, texture and transfer budgets for every LOD.
+
+The validator runs an intentionally incomplete production-asset self-test on every CI run, so the stricter production policy cannot silently become inactive while only fixture assets exist.
 
 ## LOD production gate
 
@@ -52,7 +80,7 @@ Each real LOD must record:
 
 ## Runtime frame telemetry
 
-The renderer now samples active rendered frames rather than idle wall-clock time. This matters because the canvas uses `frameloop="demand"`.
+The renderer samples active rendered frames rather than idle wall-clock time. This matters because the canvas uses `frameloop="demand"`.
 
 Current degradation rule:
 
@@ -68,7 +96,7 @@ Quality degradation changes renderer cost, not domain state:
 - high -> medium: cap DPR at 1.5 and disable post-processing,
 - medium -> low: cap DPR at 1, disable shadows and post-processing.
 
-Direct interaction, selection and camera state remain intact.
+Direct interaction, selection and camera state remain intact. Asset runtime events also expose load/readiness duration so hosts can record real product timing without coupling analytics into the renderer.
 
 ## Device matrix
 
@@ -105,6 +133,6 @@ A real asset is accepted only when:
 - at least one real animation clip exercises `animation-state`,
 - fallback imagery exists,
 - the asset passes mobile and iOS Safari QA,
-- measured budgets are committed to documentation.
+- measured budgets are committed to the registry/documentation.
 
 Do not mark KTX2, Meshopt, LOD or device validation complete merely because loader support exists. The gate closes only with a real production asset and measured device evidence.
