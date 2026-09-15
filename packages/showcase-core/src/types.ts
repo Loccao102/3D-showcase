@@ -14,9 +14,24 @@ export interface CameraPreset extends CameraFraming {
   mobile?: CameraFraming;
 }
 
+export interface AssetBudget {
+  triangleCount?: number;
+  geometryBytes?: number;
+  textureBytes?: number;
+  transferBytes?: number;
+}
+
+export interface AssetDelivery {
+  meshopt?: boolean;
+  draco?: boolean | string;
+  ktx2TranscoderPath?: string;
+}
+
 export interface AssetLod {
   maxViewportWidth: number;
   url: string;
+  quality?: RenderQuality;
+  budget?: AssetBudget;
 }
 
 export interface AssetSource {
@@ -30,6 +45,8 @@ export interface AssetSource {
   position?: Vec3;
   rotation?: Vec3;
   scale?: Vec3;
+  delivery?: AssetDelivery;
+  budget?: AssetBudget;
   metadata?: Record<string, unknown>;
 }
 
