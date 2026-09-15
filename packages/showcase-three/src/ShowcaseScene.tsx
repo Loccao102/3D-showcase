@@ -15,6 +15,7 @@ export interface ShowcaseSceneProps {
   manifest: ShowcaseManifest;
   bindings: readonly VariantBinding[];
   viewportWidth: number;
+  reducedMotion?: boolean | undefined;
   onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
@@ -22,6 +23,7 @@ export function ShowcaseScene({
   manifest,
   bindings,
   viewportWidth,
+  reducedMotion = false,
   onAssetRuntimeEvent,
 }: ShowcaseSceneProps) {
   const assets = useMemo(
@@ -46,6 +48,7 @@ export function ShowcaseScene({
           key={asset.id}
           asset={asset}
           viewportWidth={viewportWidth}
+          reducedMotion={reducedMotion}
           animationBindings={animationBindings}
           onRuntimeEvent={onAssetRuntimeEvent}
         />
