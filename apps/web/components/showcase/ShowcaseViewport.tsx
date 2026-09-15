@@ -66,7 +66,10 @@ export default function ShowcaseViewport({
       onPerformanceSample={onPerformanceSample}
       onQualitySuggestion={onQualitySuggestion}
     >
-      <ShowcaseRuntime bindings={sceneMutationBindings}>
+      <ShowcaseRuntime
+        bindings={sceneMutationBindings}
+        materialTransitionMs={renderPolicy.preferReducedMotion ? 0 : 220}
+      >
         <ShowcaseScene
           manifest={manifest}
           bindings={bindings}
