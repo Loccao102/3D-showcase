@@ -74,6 +74,7 @@ export default function ShowcaseViewport({
           manifest={manifest}
           bindings={bindings}
           viewportWidth={viewportWidth}
+          reducedMotion={renderPolicy.preferReducedMotion}
           onAssetRuntimeEvent={onAssetRuntimeEvent}
         />
       </ShowcaseRuntime>
