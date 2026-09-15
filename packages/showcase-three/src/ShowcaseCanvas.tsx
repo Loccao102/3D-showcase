@@ -2,18 +2,21 @@
 
 import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import type {
-  CameraFraming,
-  EnvironmentDefinition,
-  FramePerformanceSample,
-  RenderPolicy,
-  RenderQuality,
-  ShowcaseManifest,
+import {
+  resolveAdaptiveRenderPolicy,
+  type CameraFraming,
+  type EnvironmentDefinition,
+  type FramePerformanceSample,
+  type RenderPolicy,
+  type RenderQuality,
+  type ShowcaseManifest,
 } from "@showcase/core";
 import {
   Suspense,
   useEffect,
+  useMemo,
   useRef,
+  useState,
   type ElementRef,
   type ReactNode,
 } from "react";
@@ -227,6 +230,17 @@ export function ShowcaseCanvas({
   onPerformanceSample,
   onQualitySuggestion,
 }: ShowcaseCanvasProps) {
+  const [runtimeQuality, setRuntimeQuality] = useState(renderPolicy.quality);
+
+  useEffect(() => {
+    setRuntimeQuality(renderPolicy.quality);
+  }, [renderPolicy.quality]);
+
+  const effectivePolicy = useMemo(
+    () => resolveAdaptiveRenderPolicy(renderPolicy, runtimeQuality),
+    [renderPolicy, runtimeQuality],
+  );
+
   const initialCamera =
     manifest.cameraPresets.find(
       (preset) => preset.id === manifest.scene.defaultCameraPresetId,
@@ -247,27 +261,34 @@ export function ShowcaseCanvas({
   ];
 
   return (
-    <div className={className} data-quality={renderPolicy.quality}>
+    <div
+      className={className}
+      data-quality={effectivePolicy.quality}
+      data-base-quality={renderPolicy.quality}
+    >
       <Canvas
-        dpr={renderPolicy.maxDpr}
+        dpr={effectivePolicy.maxDpr}
         frameloop="demand"
         camera={{ position: cameraPosition, fov, near: 0.1, far: 150 }}
         gl={{
-          antialias: renderPolicy.quality !== "low",
+          antialias: effectivePolicy.quality !== "low",
           alpha: true,
           powerPreference: "high-performance",
         }}
-        shadows={renderPolicy.enableShadows}
+        shadows={effectivePolicy.enableShadows}
       >
         <FrameTelemetry
-          quality={renderPolicy.quality}
+          quality={effectivePolicy.quality}
           onSample={onPerformanceSample}
-          onQualitySuggestion={onQualitySuggestion}
+          onQualitySuggestion={(quality) => {
+            setRuntimeQuality(quality);
+            onQualitySuggestion?.(quality);
+          }}
         />
         <Suspense fallback={null}>
           <ambientLight intensity={0.55} />
           <directionalLight
-            castShadow={renderPolicy.enableShadows}
+            castShadow={effectivePolicy.enableShadows}
             intensity={2.2}
             position={[5, 8, 4]}
           />
@@ -276,7 +297,7 @@ export function ShowcaseCanvas({
             environmentIntensity={manifest.scene.environment?.intensity ?? 0.85}
           />
           {children}
-          {renderPolicy.enableShadows ? (
+          {effectivePolicy.enableShadows ? (
             <ContactShadows
               position={[0, -0.02, 0]}
               opacity={0.3}
@@ -287,7 +308,7 @@ export function ShowcaseCanvas({
           ) : null}
           <DirectedOrbitControls
             manifest={manifest}
-            renderPolicy={renderPolicy}
+            renderPolicy={effectivePolicy}
             initialTarget={controlsTarget}
             activeCameraPresetId={activeCameraPresetId}
             cameraRequestKey={cameraRequestKey}
