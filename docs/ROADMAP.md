@@ -8,9 +8,9 @@ The roadmap therefore prioritizes renderer quality, generic interaction contract
 
 ## Phase 0 — Foundation
 
-Status: in progress on `foundation/automotive-commerce`.
+Status: **complete**.
 
-Deliverables:
+Delivered:
 
 - monorepo boundaries,
 - `@showcase/core` product-agnostic contracts,
@@ -22,7 +22,7 @@ Deliverables:
 - typography/motion direction,
 - CI.
 
-Exit criteria:
+Exit criteria met:
 
 - frontend typecheck/build passes,
 - backend tests pass,
@@ -31,90 +31,138 @@ Exit criteria:
 
 ## Phase 1 — Showcase Engine V1
 
-Priority: highest.
+Status: **core complete**.
 
-### 1. Real GLB pipeline
+The generic engine interaction loop is implemented. Production-quality asset optimization and physical-device profiling continue as hardening work rather than blockers for the engine architecture.
 
-- import first production-quality vehicle asset,
-- normalize node/material naming,
-- produce at least low/medium/high delivery tiers,
-- fallback poster,
-- initial KTX2/Meshopt pipeline.
+### 1. Asset runtime
+
+Delivered:
+
+- manifest-driven glTF/primitive loading by stable asset ID,
+- responsive LOD URL resolution,
+- generic asset slots,
+- loading/ready/error states,
+- fallback poster behavior,
+- self-owned reference glTF fixtures,
+- CI validation for embedded buffers and required semantic nodes/anchors.
+
+Production hardening still required:
+
+- production-quality licensed/self-created vehicle asset,
+- real LOD0/LOD1/LOD2 geometry,
+- KTX2/Basis validation,
+- Meshopt benchmarking,
+- measured production asset budgets.
 
 ### 2. Generic scene registry
+
+Delivered:
 
 - resolve manifest assets by stable IDs,
 - find semantic nodes/materials,
 - expose anchors,
-- isolate asset-specific traversal from UI code.
+- isolate asset-specific traversal from UI code,
+- clone mutable runtime materials so loader cache is not mutated.
 
 ### 3. Binding engine
 
-Implement generic runtime bindings:
+Delivered generic runtime paths:
 
 - material color,
 - node visibility,
 - asset replacement,
 - animation state.
 
-Then extend cautiously with:
+The engine restores mutable defaults safely and reports missing scene mutation targets without crashing the experience.
+
+Extend only when a real vertical requires it, for example:
 
 - material parameters,
 - texture replacement,
-- transforms if a real vertical requires them.
+- transforms.
 
 ### 4. Hotspot system
 
-- 3D anchors,
+Delivered:
+
+- 3D semantic anchors,
 - DOM annotation overlays,
-- occlusion-aware behavior where practical,
+- basic occlusion behavior,
 - active hotspot state,
-- mobile-safe interaction.
+- mobile-safe interaction,
+- guided detail handoff without product-specific renderer logic.
 
 ### 5. Camera director
 
+Delivered:
+
 - named presets,
+- target/position/FOV tweening,
 - interruptible transitions,
 - orbit handoff,
 - desktop/mobile framing,
-- reduced-motion fallback.
+- reduced-motion fallback,
+- explicit return-to-explore flow.
 
 ### 6. Motion system
 
-Implement the approved vocabulary:
+Core motion requirement delivered:
+
+- interruptible camera flight,
+- reduced-motion equivalent,
+- direct input always outranks cinematic motion.
+
+Visual polish remains iterative:
 
 - light-cut reveal,
-- camera flight,
-- material morph,
-- spatial swap,
+- perceptual material morph,
+- richer spatial swap,
 - depth typography,
-- ambient drift by capability tier.
+- optional ambient drift by capability tier.
 
 ### 7. Performance controller
 
+Delivered:
+
 - capability-based quality policy,
 - DPR limits,
-- optional adaptive degradation,
-- effect priorities,
-- loading telemetry,
-- real-device profiling.
+- `frameloop="demand"` idle strategy,
+- effect priority rules,
+- fallback/error behavior,
+- responsive/mobile composition.
 
-Exit criteria for V1 are defined in `EXPERIENCE_SPEC.md`.
+Hardening still required on production assets:
+
+- loading telemetry,
+- sustained frame-time measurements,
+- representative Android/iOS/tablet profiling,
+- optional adaptive degradation if measurements justify it.
+
+The V1 acceptance loop in `EXPERIENCE_SPEC.md` is now represented by the automotive reference experience: fallback/progressive loading, free orbit/zoom, three guided hotspots, interruptible camera presets, generic bindings, asset swap, capability quality policy, reduced motion and selection snapshot output.
 
 ## Phase 2 — Automotive Vertical V1
 
-The first production vertical proves the engine without contaminating it.
+Status: **reference proof implemented; production vertical next**.
 
-Deliverables:
+The current fixture proves the generic engine without contaminating it. Production vertical work now focuses on content fidelity rather than renderer architecture.
 
-- automotive manifest adapter,
+Delivered reference proof:
+
 - exterior colors,
-- at least one wheel/trim replacement,
-- exterior hotspots,
-- interior camera/detail scene,
-- product specification panel,
-- shareable configuration state,
-- responsive mobile configurator.
+- whole-asset trim replacement,
+- three exterior/detail hotspots,
+- cabin/detail camera preset,
+- responsive mobile configurator,
+- shareable/serializable generic configuration snapshot.
+
+Production deliverables:
+
+- production automotive manifest adapter/content set,
+- production vehicle asset and real wheel/trim variants,
+- interior-quality scene/content,
+- product specification panel sourced from real product metadata,
+- configuration URL/share persistence if required.
 
 Possible later additions:
 
@@ -157,7 +205,7 @@ Potential modules:
 Rule:
 
 ```text
-commerce → consumes showcase selection snapshot
+commerce → consumes ShowcaseSelectionSnapshot
 showcase → never depends on commerce
 ```
 
@@ -197,19 +245,17 @@ Longer-term direction if the engine proves valuable:
 Do not reorder these because ecommerce feels easier to demonstrate.
 
 ```text
-Foundation
+Foundation                        ✓
    ↓
-Real 3D asset
+Showcase Engine V1 core           ✓
    ↓
-Binding + hotspot + camera engine
+Production asset/device hardening ← current
    ↓
-Performance + mobile
-   ↓
-Automotive vertical
+Automotive Vertical V1
    ↓
 Content pipeline
    ↓
-Commerce
+Optional commerce
    ↓
 Second vertical
    ↓
@@ -228,4 +274,4 @@ For showcase features, definition of done includes:
 - low capability fallback,
 - asset loading failure behavior,
 - no domain leakage into the core,
-- measurable performance impact.
+- measurable performance impact for production content.
