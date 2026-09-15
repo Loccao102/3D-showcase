@@ -23,6 +23,7 @@ import {
   Object3D,
   type WebGLRenderer,
 } from "three";
+import { AssetEntrance } from "./AssetEntrance";
 import { resolveGltfDelivery } from "./GltfDelivery";
 
 export type AssetRuntimeStatus = "loading" | "ready" | "error";
@@ -82,7 +83,12 @@ class AssetBoundary extends Component<AssetBoundaryProps, AssetBoundaryState> {
     this.props.onRuntimeEvent?.({
       assetId: this.props.asset.id,
       status: "error",
-      ...(url ? { url, durationMs: consumeAssetLoadDuration(this.props.asset.id, url) } : {}),
+      ...(url
+        ? {
+            url,
+            durationMs: consumeAssetLoadDuration(this.props.asset.id, url),
+          }
+        : {}),
       error,
     });
   }
@@ -155,6 +161,7 @@ function AssetLoading({ asset, url, onRuntimeEvent }: AssetLoadingProps) {
 interface GltfAssetProps {
   asset: AssetSource;
   url: string;
+  reducedMotion: boolean;
   animationBindings: readonly Extract<
     VariantBinding,
     { type: "animation-state" }
@@ -165,6 +172,7 @@ interface GltfAssetProps {
 function GltfAsset({
   asset,
   url,
+  reducedMotion,
   animationBindings,
   onRuntimeEvent,
 }: GltfAssetProps) {
@@ -243,7 +251,9 @@ function GltfAsset({
       {...assetTransformProps(asset)}
       userData={{ showcaseAssetId: asset.id, showcaseSlot: asset.slot }}
     >
-      <primitive object={runtimeScene} />
+      <AssetEntrance reducedMotion={reducedMotion}>
+        <primitive object={runtimeScene} />
+      </AssetEntrance>
     </group>
   );
 }
@@ -295,6 +305,7 @@ function MissingAsset({ asset, onRuntimeEvent }: MissingAssetProps) {
 export interface ShowcaseAssetProps {
   asset: AssetSource;
   viewportWidth: number;
+  reducedMotion?: boolean | undefined;
   animationBindings?:
     | readonly Extract<VariantBinding, { type: "animation-state" }>[]
     | undefined;
@@ -304,6 +315,7 @@ export interface ShowcaseAssetProps {
 export function ShowcaseAsset({
   asset,
   viewportWidth,
+  reducedMotion = false,
   animationBindings = [],
   onRuntimeEvent,
 }: ShowcaseAssetProps) {
@@ -329,6 +341,7 @@ export function ShowcaseAsset({
         <GltfAsset
           asset={asset}
           url={url}
+          reducedMotion={reducedMotion}
           animationBindings={animationBindings}
           onRuntimeEvent={onRuntimeEvent}
         />
