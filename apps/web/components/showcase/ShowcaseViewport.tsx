@@ -20,12 +20,12 @@ export interface ShowcaseViewportProps {
   renderPolicy: RenderPolicy;
   bindings: readonly VariantBinding[];
   viewportWidth: number;
-  activeHotspotId?: string;
-  activeCameraPresetId?: string;
-  cameraRequestKey?: number;
-  onHotspotSelect?: (hotspot: Hotspot) => void;
-  onUserInteract?: () => void;
-  onAssetRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  activeHotspotId?: string | undefined;
+  activeCameraPresetId?: string | undefined;
+  cameraRequestKey?: number | undefined;
+  onHotspotSelect?: ((hotspot: Hotspot) => void) | undefined;
+  onUserInteract?: (() => void) | undefined;
+  onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 export default function ShowcaseViewport({
