@@ -15,7 +15,7 @@ export interface ShowcaseSceneProps {
   manifest: ShowcaseManifest;
   bindings: readonly VariantBinding[];
   viewportWidth: number;
-  onAssetRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 export function ShowcaseScene({
