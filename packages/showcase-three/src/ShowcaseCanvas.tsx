@@ -5,7 +5,9 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import type {
   CameraFraming,
   EnvironmentDefinition,
+  FramePerformanceSample,
   RenderPolicy,
+  RenderQuality,
   ShowcaseManifest,
 } from "@showcase/core";
 import {
@@ -16,6 +18,7 @@ import {
   type ReactNode,
 } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
+import { FrameTelemetry } from "./FrameTelemetry";
 
 export interface ShowcaseCanvasProps {
   manifest: ShowcaseManifest;
@@ -25,6 +28,8 @@ export interface ShowcaseCanvasProps {
   activeCameraPresetId?: string | undefined;
   cameraRequestKey?: string | number | undefined;
   onUserInteract?: (() => void) | undefined;
+  onPerformanceSample?: ((sample: FramePerformanceSample) => void) | undefined;
+  onQualitySuggestion?: ((quality: RenderQuality) => void) | undefined;
 }
 
 type EnvironmentPreset = Exclude<
@@ -219,6 +224,8 @@ export function ShowcaseCanvas({
   activeCameraPresetId,
   cameraRequestKey,
   onUserInteract,
+  onPerformanceSample,
+  onQualitySuggestion,
 }: ShowcaseCanvasProps) {
   const initialCamera =
     manifest.cameraPresets.find(
@@ -252,6 +259,11 @@ export function ShowcaseCanvas({
         }}
         shadows={renderPolicy.enableShadows}
       >
+        <FrameTelemetry
+          quality={renderPolicy.quality}
+          onSample={onPerformanceSample}
+          onQualitySuggestion={onQualitySuggestion}
+        />
         <Suspense fallback={null}>
           <ambientLight intensity={0.55} />
           <directionalLight
