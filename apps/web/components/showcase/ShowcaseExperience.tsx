@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  assertValidShowcaseManifest,
   createDefaultSelection,
   createSelectionSnapshot,
   resolveRenderPolicy,
@@ -19,7 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 const ShowcaseViewport = dynamic(() => import("./ShowcaseViewport"), {
   ssr: false,
   loading: () => (
-    <div className="showcase-loading" role="status">
+    <div className="showcase-loading" role="status" aria-live="polite">
       <span>Preparing 3D view</span>
     </div>
   ),
@@ -242,6 +243,8 @@ const manifest: ShowcaseManifest = {
   },
 };
 
+assertValidShowcaseManifest(manifest);
+
 const hotspotCopy: Record<string, { title: string; body: string }> = {
   lighting: {
     title: "Signature lighting",
@@ -276,6 +279,8 @@ export interface ShowcaseExperienceProps {
   onSelectionSnapshot?: (snapshot: ShowcaseSelectionSnapshot) => void;
 }
 
+type CopyStatus = "idle" | "copied" | "unsupported" | "error";
+
 export function ShowcaseExperience({
   onSelectionSnapshot,
 }: ShowcaseExperienceProps = {}) {
@@ -295,6 +300,7 @@ export function ShowcaseExperience({
   );
   const [assetError, setAssetError] = useState<string>();
   const [userHasInteracted, setUserHasInteracted] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
 
   useEffect(() => {
     const nav = navigator as ExtendedNavigator;
@@ -341,6 +347,10 @@ export function ShowcaseExperience({
     onSelectionSnapshot?.(snapshot);
   }, [onSelectionSnapshot, snapshot]);
 
+  useEffect(() => {
+    setCopyStatus("idle");
+  }, [snapshot]);
+
   const activeHotspot = manifest.hotspots.find(
     (candidate) => candidate.id === activeHotspotId,
   );
@@ -384,14 +394,33 @@ export function ShowcaseExperience({
 
   const copySnapshot = useCallback(async () => {
     if (!navigator.clipboard) {
+      setCopyStatus("unsupported");
       return;
     }
 
-    await navigator.clipboard.writeText(JSON.stringify(snapshot));
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(snapshot));
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    }
   }, [snapshot]);
+
+  const copyAnnouncement =
+    copyStatus === "copied"
+      ? "Configuration JSON copied to clipboard."
+      : copyStatus === "unsupported"
+        ? "Clipboard access is not available in this browser."
+        : copyStatus === "error"
+          ? "Configuration JSON could not be copied."
+          : "";
 
   return (
     <main className="experience-shell">
+      <a className="skip-link" href="#showcase-configuration">
+        Skip to configuration
+      </a>
+
       <header className="site-header">
         <a className="brand" href="#top" aria-label="3D Showcase home">
           <span className="brand-mark" aria-hidden="true" />
@@ -399,14 +428,16 @@ export function ShowcaseExperience({
         </a>
         <div className="header-meta">
           <span>CORE 0.3</span>
-          <span className="quality-chip">{renderPolicy.quality} render</span>
+          <span className="quality-chip" aria-label={`${renderPolicy.quality} rendering quality`}>
+            {renderPolicy.quality} render
+          </span>
         </div>
       </header>
 
       <section className="showcase-layout" id="top">
         <div className="showcase-copy">
           <p className="eyebrow">SHOWCASE ENGINE V1 / AUTOMOTIVE PROOF</p>
-          <h1>{manifest.title}</h1>
+          <h1 id="showcase-title">{manifest.title}</h1>
           <p className="lede">{manifest.subtitle}</p>
           <div className="proof-row" aria-label="Platform principles">
             <span>Asset driven</span>
@@ -415,7 +446,17 @@ export function ShowcaseExperience({
           </div>
         </div>
 
-        <div className="stage-frame" aria-label="Interactive 3D product showcase">
+        <div
+          className="stage-frame"
+          role="region"
+          aria-labelledby="showcase-title"
+          aria-describedby="showcase-stage-description"
+        >
+          <p id="showcase-stage-description" className="sr-only">
+            Interactive 3D preview. Use the labeled hotspot buttons for guided details
+            or skip to the product configuration controls to change the scene.
+          </p>
+
           {fallbackImage ? (
             <div
               className="showcase-poster"
@@ -438,23 +479,34 @@ export function ShowcaseExperience({
             onAssetRuntimeEvent={handleAssetRuntimeEvent}
           />
 
-          <div className="stage-status" data-status={assetStatus} role="status">
+          <div
+            className="stage-status"
+            data-status={assetStatus}
+            role="status"
+            aria-live="polite"
+          >
             <span>{assetStatus === "ready" ? mode : assetStatus}</span>
             {assetError ? <span>{assetError}</span> : null}
           </div>
 
           {activeHotspotContent ? (
-            <div className="stage-detail-card" role="dialog" aria-live="polite">
+            <section
+              className="stage-detail-card"
+              aria-live="polite"
+              aria-labelledby="showcase-detail-title"
+            >
               <p className="panel-kicker">Guided detail</p>
-              <strong>{activeHotspotContent.title}</strong>
+              <h2 id="showcase-detail-title" className="stage-detail-title">
+                {activeHotspotContent.title}
+              </h2>
               <p>{activeHotspotContent.body}</p>
               <button type="button" onClick={resetCamera}>
                 Return to free explore
               </button>
-            </div>
+            </section>
           ) : null}
 
-          <div className="stage-corner stage-corner-left">
+          <div className="stage-corner stage-corner-left" aria-hidden="true">
             Drag to orbit<br />Scroll to inspect
           </div>
           <div className="stage-corner stage-corner-right" aria-hidden="true">
@@ -462,68 +514,83 @@ export function ShowcaseExperience({
           </div>
         </div>
 
-        <aside className="config-panel" aria-label="Product configuration">
+        <aside
+          id="showcase-configuration"
+          className="config-panel"
+          aria-labelledby="showcase-config-title"
+          tabIndex={-1}
+        >
           <div className="config-heading">
             <div>
               <p className="panel-kicker">Configuration</p>
-              <h2>Scene bindings</h2>
+              <h2 id="showcase-config-title">Scene bindings</h2>
             </div>
-            <span>{snapshot.optionIds.length} active</span>
+            <span aria-label={`${snapshot.optionIds.length} active options`}>
+              {snapshot.optionIds.length} active
+            </span>
           </div>
 
           <div className="config-groups">
-            {manifest.optionGroups.map((group) => (
-              <section className="config-group" key={group.id}>
-                <div className="config-group-heading">
-                  <span>{group.label}</span>
-                  <span>{group.selection}</span>
-                </div>
-                <div className="finish-options" role="group" aria-label={group.label}>
-                  {group.options.map((option) => {
-                    const colorBinding = option.bindings.find(
-                      (binding) => binding.type === "material-color",
-                    );
-                    const swatch =
-                      colorBinding?.type === "material-color"
-                        ? colorBinding.value
-                        : undefined;
-                    const active = selection[group.id]?.includes(option.id) ?? false;
+            {manifest.optionGroups.map((group) => {
+              const groupHeadingId = `config-group-${group.id}`;
 
-                    return (
-                      <button
-                        className="finish-option"
-                        data-active={active}
-                        key={option.id}
-                        onClick={() => {
-                          setMode("configure");
-                          setSelection((current) =>
-                            selectOption(manifest, current, group.id, option.id),
-                          );
-                        }}
-                        aria-pressed={active}
-                        type="button"
-                      >
-                        {swatch ? (
-                          <span
-                            className="finish-swatch"
-                            style={{ background: swatch }}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <span className="binding-icon" aria-hidden="true">
-                            {group.id === "trim" ? "↔" : "◉"}
-                          </span>
-                        )}
-                        <span>{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+              return (
+                <section
+                  className="config-group"
+                  key={group.id}
+                  aria-labelledby={groupHeadingId}
+                >
+                  <div className="config-group-heading">
+                    <h3 id={groupHeadingId}>{group.label}</h3>
+                    <span aria-hidden="true">{group.selection}</span>
+                  </div>
+                  <div className="finish-options" role="group" aria-labelledby={groupHeadingId}>
+                    {group.options.map((option) => {
+                      const colorBinding = option.bindings.find(
+                        (binding) => binding.type === "material-color",
+                      );
+                      const swatch =
+                        colorBinding?.type === "material-color"
+                          ? colorBinding.value
+                          : undefined;
+                      const active = selection[group.id]?.includes(option.id) ?? false;
+
+                      return (
+                        <button
+                          className="finish-option"
+                          data-active={active}
+                          key={option.id}
+                          onClick={() => {
+                            setMode("configure");
+                            setSelection((current) =>
+                              selectOption(manifest, current, group.id, option.id),
+                            );
+                          }}
+                          aria-pressed={active}
+                          type="button"
+                        >
+                          {swatch ? (
+                            <span
+                              className="finish-swatch"
+                              style={{ background: swatch }}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <span className="binding-icon" aria-hidden="true">
+                              {group.id === "trim" ? "↔" : "◉"}
+                            </span>
+                          )}
+                          <span>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
           </div>
 
-          <div className="panel-divider" />
+          <div className="panel-divider" aria-hidden="true" />
 
           <div className="selection-snapshot">
             <div>
@@ -533,6 +600,9 @@ export function ShowcaseExperience({
             <button type="button" onClick={copySnapshot}>
               Copy JSON
             </button>
+            <span className="sr-only" role="status" aria-live="polite">
+              {copyAnnouncement}
+            </span>
           </div>
 
           <div className="architecture-note">
