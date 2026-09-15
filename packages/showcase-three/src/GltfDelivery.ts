@@ -17,17 +17,15 @@ const ktx2Loaders = new WeakMap<WebGLRenderer, Map<string, KTX2Loader>>();
 function readDeliveryMetadata(asset: AssetSource): DeliveryMetadata {
   const raw = asset.metadata?.delivery;
   if (!raw || typeof raw !== "object") {
-    return { meshopt: true, draco: true };
+    return { meshopt: true, draco: false };
   }
 
   const delivery = raw as Record<string, unknown>;
   const dracoValue = delivery.draco;
   const draco =
-    dracoValue === false
-      ? false
-      : typeof dracoValue === "string"
-        ? dracoValue
-        : true;
+    typeof dracoValue === "string"
+      ? dracoValue
+      : dracoValue === true;
 
   return {
     meshopt: delivery.meshopt !== false,
