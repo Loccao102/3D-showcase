@@ -1,7 +1,10 @@
 "use client";
 
 import {
+  createDefaultSelection,
   resolveRenderPolicy,
+  resolveSelectionBindings,
+  selectOption,
   type RenderPolicy,
   type ShowcaseManifest,
 } from "@showcase/core";
@@ -113,8 +116,8 @@ interface ExtendedNavigator extends Navigator {
 
 export function ShowcaseExperience() {
   const finishGroup = manifest.optionGroups[0];
-  const [selectedFinish, setSelectedFinish] = useState(
-    finishGroup?.defaultOptionIds?.[0] ?? finishGroup?.options[0]?.id ?? "",
+  const [selection, setSelection] = useState(() =>
+    createDefaultSelection(manifest),
   );
   const [renderPolicy, setRenderPolicy] = useState(initialPolicy);
 
@@ -135,17 +138,17 @@ export function ShowcaseExperience() {
     );
   }, []);
 
-  const selectedColor = useMemo(() => {
-    const option = finishGroup?.options.find(
-      (candidate) => candidate.id === selectedFinish,
-    );
-    const binding = option?.bindings.find(
-      (candidate) =>
-        candidate.type === "material-color" && candidate.target === "body",
-    );
-
-    return binding?.type === "material-color" ? binding.value : "#2b3038";
-  }, [finishGroup, selectedFinish]);
+  const resolvedBindings = useMemo(
+    () => resolveSelectionBindings(manifest, selection),
+    [selection],
+  );
+  const bindings = useMemo(
+    () => resolvedBindings.map((resolved) => resolved.binding),
+    [resolvedBindings],
+  );
+  const selectedFinish = finishGroup
+    ? (selection[finishGroup.id]?.[0] ?? "")
+    : "";
 
   return (
     <main className="experience-shell">
@@ -155,7 +158,7 @@ export function ShowcaseExperience() {
           <span>3D / SHOWCASE</span>
         </a>
         <div className="header-meta">
-          <span>CORE 0.1</span>
+          <span>CORE 0.2</span>
           <span className="quality-chip">{renderPolicy.quality} render</span>
         </div>
       </header>
@@ -176,7 +179,7 @@ export function ShowcaseExperience() {
           <ShowcaseViewport
             manifest={manifest}
             renderPolicy={renderPolicy}
-            color={selectedColor}
+            bindings={bindings}
           />
           <div className="stage-corner stage-corner-left">
             Drag to orbit<br />Scroll to inspect
@@ -211,7 +214,11 @@ export function ShowcaseExperience() {
                   className="finish-option"
                   data-active={active}
                   key={option.id}
-                  onClick={() => setSelectedFinish(option.id)}
+                  onClick={() =>
+                    setSelection((current) =>
+                      selectOption(manifest, current, finishGroup.id, option.id),
+                    )
+                  }
                   aria-pressed={active}
                   type="button"
                 >
@@ -231,9 +238,9 @@ export function ShowcaseExperience() {
           <div className="architecture-note">
             <span>Why this matters</span>
             <p>
-              This control is reading a generic option binding. Replace the car
-              vertical with furniture or electronics and the showcase core stays
-              unchanged.
+              The configurator now emits generic manifest bindings. Scene targets
+              are resolved by the showcase runtime instead of being wired to a
+              car-specific React prop.
             </p>
           </div>
         </aside>
