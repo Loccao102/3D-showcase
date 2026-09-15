@@ -1,0 +1,13 @@
+{
+  "name": "3d-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.4.1",
+  "scripts": {
+    "dev": "pnpm --filter @showcase/web dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "validate:assets": "node scripts/validate-showcase-assets.mjs",
+    "lint": "pnpm -r --if-present lint"
+  }
+}
