@@ -1,95 +1,108 @@
 # Next Tasks — Showcase Engine V1
 
-This file is the short operational backlog. The full sequence and rationale live in `ROADMAP.md`.
+Showcase Engine V1 core is now functionally complete. This file separates completed engine work from production asset/device hardening and vertical-specific work.
 
-## P0 — First real asset
+## V1 Core — Asset runtime
 
-- [ ] select a legal/reusable vehicle GLB or create one
-- [ ] inspect geometry/material structure
-- [ ] normalize node/material names
-- [ ] create fallback poster
-- [ ] define LOD0 / LOD1 / LOD2 strategy
-- [ ] test KTX2 texture workflow
-- [ ] test Meshopt compression
-- [ ] record final asset budget
-
-## P0 — Runtime asset registry
-
-- [ ] load manifest assets by stable IDs
+- [x] load manifest assets by stable IDs
+- [x] select responsive asset URLs from manifest LOD entries
+- [x] resolve asset slots and `asset-replacement` generically
 - [x] create semantic node/material lookup
 - [x] expose named anchors
-- [ ] provide asset loading states and failures
+- [x] provide asset loading / ready / failure states
+- [x] show a fallback poster before the interactive asset is ready
 - [x] keep product-specific traversal out of UI components
+- [x] clone runtime materials so configuration does not mutate loader cache
+- [x] remove the old procedural automotive renderer path
 
-## P0 — Binding engine
+## V1 Core — Binding engine
 
 - [x] apply `material-color`
 - [x] apply `node-visibility`
-- [ ] apply `asset-replacement` (generic runtime hook is in place; concrete asset host still pending)
-- [ ] apply `animation-state` (generic runtime hook is in place; animation host still pending)
-- [x] restore defaults safely
-- [x] validate missing targets without crashing the scene
+- [x] apply `asset-replacement`
+- [x] apply `animation-state` to semantic asset / slot targets
+- [x] restore mutable scene defaults safely
+- [x] validate missing mutation targets without crashing the scene
+- [x] expose selection snapshot independently from commerce
 
-## P0 — Camera director
+## V1 Core — Camera director
 
-- [ ] resolve named camera presets
-- [ ] tween camera + target
-- [ ] cancel tween on direct user input
-- [ ] restore orbit controls cleanly
-- [ ] support alternate mobile framing
-- [ ] reduced-motion behavior
+- [x] resolve named camera presets
+- [x] tween camera + target + FOV
+- [x] cancel guided motion on direct user input
+- [x] hand control back to orbit controls cleanly
+- [x] support alternate mobile framing
+- [x] provide reduced-motion repositioning
+- [x] provide explicit camera reset / return-to-explore flow
 
-## P0 — Hotspots
+## V1 Core — Hotspots
 
-- [ ] anchor hotspot to object/node
-- [ ] project anchor to DOM overlay coordinates
-- [ ] active/inactive states
-- [ ] guided camera transition
-- [ ] mobile interaction
-- [ ] basic occlusion strategy
+- [x] anchor hotspot to semantic object/node
+- [x] project the 3D anchor through a DOM overlay
+- [x] active/inactive states
+- [x] guided camera transition
+- [x] touch-safe/mobile interaction
+- [x] basic occlusion through Drei `Html` occlusion
+- [x] content remains owned by the host app rather than the renderer
 
-## P1 — Visual shell
+## V1 Core — Device and fallback behavior
 
-- [ ] Dark Precision Gallery base tokens
-- [ ] Darker Grotesque display integration
-- [ ] Be Vietnam Pro UI/body integration
-- [ ] editorial hero composition
-- [ ] contextual desktop configurator
-- [ ] mobile bottom sheet
-- [ ] accessible focus/keyboard states
+- [x] capability-based render quality policy
+- [x] enforce DPR policy
+- [x] use `frameloop="demand"` for idle efficiency
+- [x] reduced-motion behavior
+- [x] responsive desktop/tablet/mobile composition
+- [x] mobile configurator behaves as a bottom-sheet style surface
+- [x] renderer errors keep the DOM shell/fallback available
+- [x] direct manipulation outranks guided motion
 
-## P1 — Motion vocabulary
+## V1 Core — Reference vertical proof
 
+The automotive screen is a proof fixture, not part of the engine API.
+
+- [x] manifest-driven exterior color configuration
+- [x] manifest-driven whole-asset trim replacement
+- [x] three anchored guided hotspots
+- [x] multiple camera presets including cabin/detail framing
+- [x] node visibility binding example
+- [x] configuration snapshot that an optional commerce adapter can consume
+- [x] self-owned lightweight glTF reference assets committed in-repo
+
+## Production asset hardening — next
+
+These are content-pipeline/QA tasks and no longer block the generic Showcase Engine V1 architecture:
+
+- [ ] replace the tiny reference glTF with a production-quality licensed/self-created vehicle asset
+- [ ] produce real LOD0 / LOD1 / LOD2 geometry
+- [ ] validate KTX2/Basis texture delivery on representative browsers
+- [ ] validate Meshopt compression/decode tradeoffs on representative devices
+- [ ] document measured texture/geometry/network budgets for the production asset
+- [ ] validate semantic naming against the production asset
+- [ ] provide a real animated clip to exercise the already-implemented `animation-state` runtime path
+
+## Device / performance QA — next
+
+- [ ] record loading timings for the production asset
+- [ ] add sustained frame-time telemetry if adaptive degradation is required
+- [ ] profile a representative mid-range Android device
+- [ ] profile iOS Safari
+- [ ] profile tablet landscape/portrait
+- [ ] verify production HDR/environment assets have mobile budgets
+
+## Visual/motion polish — next
+
+- [ ] integrate final Vietnamese-capable display/body font pair
 - [ ] light-cut arrival reveal
-- [ ] material morph
-- [ ] depth typography choreography
-- [ ] spatial product/variant swap
-- [ ] ambient drift for high tier
-- [ ] reduced-motion equivalents
-
-## P1 — Performance
-
-- [ ] quality-tier telemetry
-- [ ] loading timings
-- [ ] measure FPS/frame time during direct interaction
-- [ ] enforce DPR policy
-- [ ] test mid-range Android device profile
-- [ ] test iOS Safari profile
-- [ ] test tablet layout
-- [ ] verify no ambient effect outranks direct interaction
-
-## P2 — Automotive vertical proof
-
-- [ ] exterior paint configuration
-- [ ] wheel/trim replacement
-- [ ] three exterior hotspots
-- [ ] interior camera preset
-- [ ] specification panel
-- [ ] configuration share state
+- [ ] perceptual material morph rather than instant color mutation
+- [ ] richer spatial product swap transition
+- [ ] optional high-tier ambient drift
+- [ ] final accessibility audit for contrast, screen reader announcements and keyboard order
 
 ## Explicitly deferred
 
-Do not prioritize these until Showcase Engine V1 is convincing:
+Commerce must consume a generic `ShowcaseSelectionSnapshot`; it must not own the renderer.
+
+Do not prioritize these as Showcase Engine work:
 
 - cart,
 - payment,
