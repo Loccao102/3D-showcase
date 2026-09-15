@@ -16,19 +16,19 @@ This file is the short operational backlog. The full sequence and rationale live
 ## P0 — Runtime asset registry
 
 - [ ] load manifest assets by stable IDs
-- [ ] create semantic node/material lookup
-- [ ] expose named anchors
+- [x] create semantic node/material lookup
+- [x] expose named anchors
 - [ ] provide asset loading states and failures
-- [ ] keep product-specific traversal out of UI components
+- [x] keep product-specific traversal out of UI components
 
 ## P0 — Binding engine
 
-- [ ] apply `material-color`
-- [ ] apply `node-visibility`
-- [ ] apply `asset-replacement`
-- [ ] apply `animation-state`
-- [ ] restore defaults safely
-- [ ] validate missing targets without crashing the scene
+- [x] apply `material-color`
+- [x] apply `node-visibility`
+- [ ] apply `asset-replacement` (generic runtime hook is in place; concrete asset host still pending)
+- [ ] apply `animation-state` (generic runtime hook is in place; animation host still pending)
+- [x] restore defaults safely
+- [x] validate missing targets without crashing the scene
 
 ## P0 — Camera director
 
