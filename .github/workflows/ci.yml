@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - foundation/automotive-commerce
+      - "feature/**"
   pull_request:
     branches:
       - main
+      - foundation/automotive-commerce
 
 jobs:
   web:
