@@ -149,6 +149,21 @@ class SceneBindingEngine {
   }
 
   apply(bindings: readonly VariantBinding[]): BindingDiagnostic[] {
+    this.registry.reindex();
+
+    const visibleColors = new Map<Material, Color>();
+    for (const binding of bindings) {
+      if (binding.type !== "material-color") {
+        continue;
+      }
+
+      for (const material of this.registry
+        .getMaterials(binding.target)
+        .filter(isColorMaterial)) {
+        visibleColors.set(material, material.color.clone());
+      }
+    }
+
     this.reset();
     this.registry.reindex();
 
@@ -156,7 +171,7 @@ class SceneBindingEngine {
 
     for (const binding of bindings) {
       try {
-        const diagnostic = this.applyBinding(binding);
+        const diagnostic = this.applyBinding(binding, visibleColors);
         if (diagnostic) {
           diagnostics.push(diagnostic);
         }
@@ -176,7 +191,10 @@ class SceneBindingEngine {
     return diagnostics;
   }
 
-  private applyBinding(binding: VariantBinding): BindingDiagnostic | undefined {
+  private applyBinding(
+    binding: VariantBinding,
+    visibleColors: ReadonlyMap<Material, Color>,
+  ): BindingDiagnostic | undefined {
     switch (binding.type) {
       case "material-color": {
         const materials = this.registry
@@ -194,16 +212,19 @@ class SceneBindingEngine {
 
         for (const material of materials) {
           const previousColor = material.color.clone();
+          const fromColor = visibleColors.get(material)?.clone() ?? previousColor.clone();
           const nextColor = new Color(binding.value);
           let frameId: number | undefined;
           let cancelled = false;
+
+          material.color.copy(fromColor);
+          material.needsUpdate = true;
 
           if (this.materialTransitionMs <= 0) {
             material.color.copy(nextColor);
             material.needsUpdate = true;
             this.requestRender?.();
           } else {
-            const fromColor = material.color.clone();
             const startedAt = performance.now();
 
             const tick = (now: number) => {
@@ -321,6 +342,12 @@ export interface ShowcaseRuntimeProps {
   onDiagnostics?: ((diagnostics: BindingDiagnostic[]) => void) | undefined;
 }
 
+interface RuntimeConfig {
+  handlers: SceneBindingHandlers | undefined;
+  materialTransitionMs: number;
+  invalidate: () => void;
+}
+
 export function ShowcaseRuntime({
   bindings,
   children,
@@ -329,6 +356,8 @@ export function ShowcaseRuntime({
   onDiagnostics,
 }: ShowcaseRuntimeProps) {
   const rootRef = useRef<Group | null>(null);
+  const engineRef = useRef<SceneBindingEngine | null>(null);
+  const configRef = useRef<RuntimeConfig | null>(null);
   const invalidate = useThree((state) => state.invalidate);
 
   useLayoutEffect(() => {
@@ -337,21 +366,40 @@ export function ShowcaseRuntime({
       return;
     }
 
-    const registry = new SceneRegistry(root);
-    const engine = new SceneBindingEngine(
-      registry,
-      handlers,
-      materialTransitionMs,
-      invalidate,
-    );
-    const diagnostics = engine.apply(bindings);
+    const previousConfig = configRef.current;
+    const configChanged =
+      !previousConfig ||
+      previousConfig.handlers !== handlers ||
+      previousConfig.materialTransitionMs !== materialTransitionMs ||
+      previousConfig.invalidate !== invalidate;
 
+    if (!engineRef.current || configChanged) {
+      engineRef.current?.reset();
+      engineRef.current = new SceneBindingEngine(
+        new SceneRegistry(root),
+        handlers,
+        materialTransitionMs,
+        invalidate,
+      );
+      configRef.current = {
+        handlers,
+        materialTransitionMs,
+        invalidate,
+      };
+    }
+
+    const diagnostics = engineRef.current.apply(bindings);
     onDiagnostics?.(diagnostics);
-
-    return () => {
-      engine.reset();
-    };
   }, [bindings, handlers, invalidate, materialTransitionMs, onDiagnostics]);
+
+  useLayoutEffect(
+    () => () => {
+      engineRef.current?.reset();
+      engineRef.current = null;
+      configRef.current = null;
+    },
+    [],
+  );
 
   return <group ref={rootRef}>{children}</group>;
 }
