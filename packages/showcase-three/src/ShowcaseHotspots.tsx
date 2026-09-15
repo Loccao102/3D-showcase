@@ -8,14 +8,14 @@ import { Group, Vector3 } from "three";
 
 export interface ShowcaseHotspotsProps {
   hotspots: readonly Hotspot[];
-  activeHotspotId?: string;
-  onSelect?: (hotspot: Hotspot) => void;
+  activeHotspotId?: string | undefined;
+  onSelect?: ((hotspot: Hotspot) => void) | undefined;
 }
 
 interface HotspotMarkerProps {
   hotspot: Hotspot;
   active: boolean;
-  onSelect?: (hotspot: Hotspot) => void;
+  onSelect?: ((hotspot: Hotspot) => void) | undefined;
 }
 
 function HotspotMarker({ hotspot, active, onSelect }: HotspotMarkerProps) {
