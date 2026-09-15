@@ -17,7 +17,6 @@ import {
 } from "react";
 import {
   AnimationMixer,
-  Group,
   Material,
   Mesh,
   Object3D,
@@ -28,13 +27,13 @@ export type AssetRuntimeStatus = "loading" | "ready" | "error";
 export interface AssetRuntimeEvent {
   assetId: string;
   status: AssetRuntimeStatus;
-  url?: string;
-  error?: Error;
+  url?: string | undefined;
+  error?: Error | undefined;
 }
 
 interface AssetBoundaryProps {
   asset: AssetSource;
-  onRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
   children: ReactNode;
 }
 
@@ -96,6 +95,18 @@ function matchesAnimationTarget(asset: AssetSource, target: string) {
   return target === asset.id || target === asset.slot || target === "*";
 }
 
+function assetTransformProps(asset: AssetSource) {
+  return {
+    ...(asset.position
+      ? { position: [...asset.position] as [number, number, number] }
+      : {}),
+    ...(asset.rotation
+      ? { rotation: [...asset.rotation] as [number, number, number] }
+      : {}),
+    ...(asset.scale ? { scale: [...asset.scale] as [number, number, number] } : {}),
+  };
+}
+
 interface GltfAssetProps {
   asset: AssetSource;
   url: string;
@@ -103,7 +114,7 @@ interface GltfAssetProps {
     VariantBinding,
     { type: "animation-state" }
   >[];
-  onRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 function GltfAsset({
@@ -168,9 +179,7 @@ function GltfAsset({
   return (
     <group
       name={`asset-slot:${asset.slot ?? asset.id}`}
-      position={asset.position ? [...asset.position] : undefined}
-      rotation={asset.rotation ? [...asset.rotation] : undefined}
-      scale={asset.scale ? [...asset.scale] : undefined}
+      {...assetTransformProps(asset)}
       userData={{ showcaseAssetId: asset.id, showcaseSlot: asset.slot }}
     >
       <primitive object={runtimeScene} />
@@ -180,7 +189,7 @@ function GltfAsset({
 
 interface PrimitiveAssetProps {
   asset: AssetSource;
-  onRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 function PrimitiveAsset({ asset, onRuntimeEvent }: PrimitiveAssetProps) {
@@ -194,9 +203,7 @@ function PrimitiveAsset({ asset, onRuntimeEvent }: PrimitiveAssetProps) {
   return (
     <group
       name={`asset-slot:${asset.slot ?? asset.id}`}
-      position={asset.position ? [...asset.position] : undefined}
-      rotation={asset.rotation ? [...asset.rotation] : undefined}
-      scale={asset.scale ? [...asset.scale] : undefined}
+      {...assetTransformProps(asset)}
       userData={{ showcaseAssetId: asset.id, showcaseSlot: asset.slot }}
     >
       <mesh name={asset.id} castShadow receiveShadow>
@@ -207,14 +214,30 @@ function PrimitiveAsset({ asset, onRuntimeEvent }: PrimitiveAssetProps) {
   );
 }
 
+interface MissingAssetProps {
+  asset: AssetSource;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
+}
+
+function MissingAsset({ asset, onRuntimeEvent }: MissingAssetProps) {
+  useEffect(() => {
+    onRuntimeEvent?.({
+      assetId: asset.id,
+      status: "error",
+      error: new Error(`Asset '${asset.id}' has no resolvable URL`),
+    });
+  }, [asset.id, onRuntimeEvent]);
+
+  return null;
+}
+
 export interface ShowcaseAssetProps {
   asset: AssetSource;
   viewportWidth: number;
-  animationBindings?: readonly Extract<
-    VariantBinding,
-    { type: "animation-state" }
-  >[];
-  onRuntimeEvent?: (event: AssetRuntimeEvent) => void;
+  animationBindings?:
+    | readonly Extract<VariantBinding, { type: "animation-state" }>[]
+    | undefined;
+  onRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 export function ShowcaseAsset({
@@ -226,7 +249,11 @@ export function ShowcaseAsset({
   const url = resolveAssetUrl(asset, viewportWidth);
 
   useEffect(() => {
-    onRuntimeEvent?.({ assetId: asset.id, status: "loading", url });
+    onRuntimeEvent?.(
+      url
+        ? { assetId: asset.id, status: "loading", url }
+        : { assetId: asset.id, status: "loading" },
+    );
   }, [asset.id, onRuntimeEvent, url]);
 
   if (asset.kind === "primitive") {
@@ -234,9 +261,7 @@ export function ShowcaseAsset({
   }
 
   if (!url) {
-    const error = new Error(`Asset '${asset.id}' has no resolvable URL`);
-    onRuntimeEvent?.({ assetId: asset.id, status: "error", error });
-    return null;
+    return <MissingAsset asset={asset} onRuntimeEvent={onRuntimeEvent} />;
   }
 
   return (
