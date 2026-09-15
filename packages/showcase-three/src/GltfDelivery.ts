@@ -1,12 +1,15 @@
 import type { AssetSource } from "@showcase/core";
 import type { WebGLRenderer } from "three";
-import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 
 interface DeliveryMetadata {
   meshopt: boolean;
   draco: boolean | string;
   ktx2TranscoderPath?: string | undefined;
+}
+
+interface Ktx2CapableLoader {
+  setKTX2Loader(loader: KTX2Loader): unknown;
 }
 
 const ktx2Loaders = new WeakMap<WebGLRenderer, Map<string, KTX2Loader>>();
@@ -58,7 +61,7 @@ export function resolveGltfDelivery(asset: AssetSource, renderer: WebGLRenderer)
   const delivery = readDeliveryMetadata(asset);
 
   const extendLoader = delivery.ktx2TranscoderPath
-    ? (loader: GLTFLoader) => {
+    ? (loader: Ktx2CapableLoader) => {
         loader.setKTX2Loader(
           getKtx2Loader(renderer, delivery.ktx2TranscoderPath as string),
         );
