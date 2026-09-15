@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "productionPolicy": {
+    "requiredLodTiers": ["lod0", "lod1", "lod2"],
+    "requiredBudgetFields": [
+      "triangleCount",
+      "geometryBytes",
+      "textureBytes",
+      "transferBytes"
+    ],
+    "requireSourceOwnership": true,
+    "requireFallbackImage": true
+  },
+  "assets": [
+    {
+      "id": "astra-base",
+      "stage": "fixture",
+      "path": "apps/web/public/models/astra-one-base.gltf",
+      "fallbackImage": "apps/web/public/showcase/astra-one-poster.svg",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear"
+      ],
+      "requiredExtensions": ["KHR_materials_unlit"]
+    },
+    {
+      "id": "astra-sport",
+      "stage": "fixture",
+      "path": "apps/web/public/models/astra-one-sport.gltf",
+      "fallbackImage": "apps/web/public/showcase/astra-one-poster.svg",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "sport-aero",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear"
+      ],
+      "requiredExtensions": ["KHR_materials_unlit"]
+    }
+  ]
+}
