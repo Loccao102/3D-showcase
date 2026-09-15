@@ -1,6 +1,7 @@
 "use client";
 
 import type { VariantBinding } from "@showcase/core";
+import { useThree } from "@react-three/fiber";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Color, Group, Material, Object3D } from "three";
 
@@ -56,6 +57,10 @@ function isColorMaterial(
   material: Material,
 ): material is Material & { color: Color } {
   return (material as Material & { color?: unknown }).color instanceof Color;
+}
+
+function easeOutCubic(value: number) {
+  return 1 - Math.pow(1 - value, 3);
 }
 
 export class SceneRegistry {
@@ -130,7 +135,9 @@ class SceneBindingEngine {
 
   constructor(
     private readonly registry: SceneRegistry,
-    private readonly handlers?: SceneBindingHandlers,
+    private readonly handlers: SceneBindingHandlers | undefined,
+    private readonly materialTransitionMs: number,
+    private readonly requestRender: (() => void) | undefined,
   ) {}
 
   reset() {
@@ -187,12 +194,51 @@ class SceneBindingEngine {
 
         for (const material of materials) {
           const previousColor = material.color.clone();
-          material.color.set(binding.value);
-          material.needsUpdate = true;
+          const nextColor = new Color(binding.value);
+          let frameId: number | undefined;
+          let cancelled = false;
+
+          if (this.materialTransitionMs <= 0) {
+            material.color.copy(nextColor);
+            material.needsUpdate = true;
+            this.requestRender?.();
+          } else {
+            const fromColor = material.color.clone();
+            const startedAt = performance.now();
+
+            const tick = (now: number) => {
+              if (cancelled) {
+                return;
+              }
+
+              const rawProgress = Math.min(
+                1,
+                (now - startedAt) / this.materialTransitionMs,
+              );
+              material.color.lerpColors(
+                fromColor,
+                nextColor,
+                easeOutCubic(rawProgress),
+              );
+              material.needsUpdate = true;
+              this.requestRender?.();
+
+              if (rawProgress < 1) {
+                frameId = requestAnimationFrame(tick);
+              }
+            };
+
+            frameId = requestAnimationFrame(tick);
+          }
 
           this.cleanup.push(() => {
+            cancelled = true;
+            if (frameId !== undefined) {
+              cancelAnimationFrame(frameId);
+            }
             material.color.copy(previousColor);
             material.needsUpdate = true;
+            this.requestRender?.();
           });
         }
 
@@ -214,8 +260,10 @@ class SceneBindingEngine {
         for (const object of objects) {
           const previousVisibility = object.visible;
           object.visible = binding.visible;
+          this.requestRender?.();
           this.cleanup.push(() => {
             object.visible = previousVisibility;
+            this.requestRender?.();
           });
         }
 
@@ -268,17 +316,20 @@ class SceneBindingEngine {
 export interface ShowcaseRuntimeProps {
   bindings: readonly VariantBinding[];
   children: ReactNode;
-  handlers?: SceneBindingHandlers;
-  onDiagnostics?: (diagnostics: BindingDiagnostic[]) => void;
+  handlers?: SceneBindingHandlers | undefined;
+  materialTransitionMs?: number | undefined;
+  onDiagnostics?: ((diagnostics: BindingDiagnostic[]) => void) | undefined;
 }
 
 export function ShowcaseRuntime({
   bindings,
   children,
   handlers,
+  materialTransitionMs = 220,
   onDiagnostics,
 }: ShowcaseRuntimeProps) {
   const rootRef = useRef<Group | null>(null);
+  const invalidate = useThree((state) => state.invalidate);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -287,7 +338,12 @@ export function ShowcaseRuntime({
     }
 
     const registry = new SceneRegistry(root);
-    const engine = new SceneBindingEngine(registry, handlers);
+    const engine = new SceneBindingEngine(
+      registry,
+      handlers,
+      materialTransitionMs,
+      invalidate,
+    );
     const diagnostics = engine.apply(bindings);
 
     onDiagnostics?.(diagnostics);
@@ -295,7 +351,7 @@ export function ShowcaseRuntime({
     return () => {
       engine.reset();
     };
-  }, [bindings, handlers, onDiagnostics]);
+  }, [bindings, handlers, invalidate, materialTransitionMs, onDiagnostics]);
 
   return <group ref={rootRef}>{children}</group>;
 }
