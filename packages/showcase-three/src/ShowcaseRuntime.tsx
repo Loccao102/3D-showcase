@@ -2,13 +2,7 @@
 
 import type { VariantBinding } from "@showcase/core";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import {
-  Color,
-  Group,
-  Material,
-  Object3D,
-  type Mesh,
-} from "three";
+import { Color, Group, Material, Object3D } from "three";
 
 export interface BindingDiagnostic {
   level: "warning" | "error";
@@ -284,7 +278,7 @@ export function ShowcaseRuntime({
   handlers,
   onDiagnostics,
 }: ShowcaseRuntimeProps) {
-  const rootRef = useRef<Group>(null);
+  const rootRef = useRef<Group | null>(null);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
