@@ -1,6 +1,6 @@
 import type { AssetSource } from "@showcase/core";
 import type { WebGLRenderer } from "three";
-import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
+import { KTX2Loader } from "three-stdlib";
 
 interface DeliveryMetadata {
   meshopt: boolean;
