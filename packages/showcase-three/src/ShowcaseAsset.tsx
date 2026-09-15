@@ -37,6 +37,7 @@ export interface AssetRuntimeEvent {
 }
 
 const assetLoadStartedAt = new Map<string, number>();
+const completedAssetLoads = new Set<string>();
 
 function nowMs() {
   return typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -48,15 +49,18 @@ function assetLoadKey(assetId: string, url: string) {
 
 function markAssetLoadStarted(assetId: string, url: string) {
   const key = assetLoadKey(assetId, url);
-  if (!assetLoadStartedAt.has(key)) {
-    assetLoadStartedAt.set(key, nowMs());
+  if (completedAssetLoads.has(key) || assetLoadStartedAt.has(key)) {
+    return;
   }
+
+  assetLoadStartedAt.set(key, nowMs());
 }
 
 function consumeAssetLoadDuration(assetId: string, url: string) {
   const key = assetLoadKey(assetId, url);
   const startedAt = assetLoadStartedAt.get(key);
   assetLoadStartedAt.delete(key);
+  completedAssetLoads.add(key);
   return startedAt === undefined ? undefined : Math.max(0, nowMs() - startedAt);
 }
 
@@ -332,7 +336,7 @@ export function ShowcaseAsset({
   markAssetLoadStarted(asset.id, url);
 
   return (
-    <AssetBoundary asset={asset} url={url} onRuntimeEvent={onRuntimeEvent}>
+    <AssetBoundary key={url} asset={asset} url={url} onRuntimeEvent={onRuntimeEvent}>
       <Suspense
         fallback={
           <AssetLoading asset={asset} url={url} onRuntimeEvent={onRuntimeEvent} />
