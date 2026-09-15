@@ -31,8 +31,18 @@ export function validateShowcaseManifest(
   manifest: ShowcaseManifest,
 ): ManifestValidationIssue[] {
   const issues: ManifestValidationIssue[] = [];
-  const assetIds = new Set(manifest.scene.assets.map((asset) => asset.id));
+  const assetById = new Map(
+    manifest.scene.assets.map((asset) => [asset.id, asset] as const),
+  );
   const cameraIds = new Set(manifest.cameraPresets.map((camera) => camera.id));
+  const assetsBySlot = new Map<string, typeof manifest.scene.assets>();
+
+  for (const asset of manifest.scene.assets) {
+    if (!asset.slot) continue;
+    const assets = assetsBySlot.get(asset.slot) ?? [];
+    assets.push(asset);
+    assetsBySlot.set(asset.slot, assets);
+  }
 
   for (const duplicate of findDuplicates(
     manifest.scene.assets.map((asset) => asset.id),
@@ -65,21 +75,34 @@ export function validateShowcaseManifest(
     });
   }
 
-  const defaults = manifest.scene.assets.filter((asset) => asset.default);
-  if (defaults.length === 0) {
+  for (const duplicate of findDuplicates(
+    manifest.optionGroups.map((group) => group.id),
+  )) {
     issues.push({
       severity: "error",
-      code: "missing-default-asset",
-      path: "scene.assets",
-      message: "A showcase manifest must define one default asset",
+      code: "duplicate-id",
+      path: "optionGroups",
+      message: `Duplicate option group id '${duplicate}'`,
     });
-  } else if (defaults.length > 1) {
-    issues.push({
-      severity: "error",
-      code: "multiple-default-assets",
-      path: "scene.assets",
-      message: "A showcase manifest must not define more than one default asset",
-    });
+  }
+
+  for (const [slot, assets] of assetsBySlot) {
+    const defaults = assets.filter((asset) => asset.default);
+    if (defaults.length === 0) {
+      issues.push({
+        severity: "warning",
+        code: "missing-default-asset",
+        path: `scene.assets(slot:${slot})`,
+        message: `Asset slot '${slot}' has no explicit default; the first asset will be used`,
+      });
+    } else if (defaults.length > 1) {
+      issues.push({
+        severity: "error",
+        code: "multiple-default-assets",
+        path: `scene.assets(slot:${slot})`,
+        message: `Asset slot '${slot}' must not define more than one default asset`,
+      });
+    }
   }
 
   if (
@@ -123,7 +146,17 @@ export function validateShowcaseManifest(
       });
     }
 
-    for (const defaultOptionId of group.defaultOptionIds ?? []) {
+    const defaultOptionIds = group.defaultOptionIds ?? [];
+    if (group.selection === "single" && defaultOptionIds.length > 1) {
+      issues.push({
+        severity: "error",
+        code: "invalid-default-option",
+        path: `optionGroups[${groupIndex}].defaultOptionIds`,
+        message: `Single-select group '${group.id}' cannot define multiple default options`,
+      });
+    }
+
+    for (const defaultOptionId of defaultOptionIds) {
       if (!optionIdSet.has(defaultOptionId)) {
         issues.push({
           severity: "error",
@@ -136,12 +169,35 @@ export function validateShowcaseManifest(
 
     for (const [optionIndex, option] of group.options.entries()) {
       for (const [bindingIndex, binding] of option.bindings.entries()) {
-        if (binding.type === "asset-replacement" && !assetIds.has(binding.assetId)) {
+        if (binding.type !== "asset-replacement") continue;
+
+        const replacementAsset = assetById.get(binding.assetId);
+        if (!replacementAsset) {
           issues.push({
             severity: "error",
             code: "missing-reference",
             path: `optionGroups[${groupIndex}].options[${optionIndex}].bindings[${bindingIndex}]`,
             message: `Asset replacement references unknown asset '${binding.assetId}'`,
+          });
+          continue;
+        }
+
+        if (!assetsBySlot.has(binding.target)) {
+          issues.push({
+            severity: "error",
+            code: "missing-reference",
+            path: `optionGroups[${groupIndex}].options[${optionIndex}].bindings[${bindingIndex}]`,
+            message: `Asset replacement references unknown slot '${binding.target}'`,
+          });
+          continue;
+        }
+
+        if (replacementAsset.slot !== binding.target) {
+          issues.push({
+            severity: "error",
+            code: "missing-reference",
+            path: `optionGroups[${groupIndex}].options[${optionIndex}].bindings[${bindingIndex}]`,
+            message: `Asset '${binding.assetId}' belongs to slot '${replacementAsset.slot ?? "none"}', not '${binding.target}'`,
           });
         }
       }
