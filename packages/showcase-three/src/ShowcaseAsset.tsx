@@ -20,7 +20,9 @@ import {
   Material,
   Mesh,
   Object3D,
+  type WebGLRenderer,
 } from "three";
+import { resolveGltfDelivery } from "./GltfDelivery";
 
 export type AssetRuntimeStatus = "loading" | "ready" | "error";
 
@@ -123,7 +125,17 @@ function GltfAsset({
   animationBindings,
   onRuntimeEvent,
 }: GltfAssetProps) {
-  const gltf = useGLTF(url);
+  const renderer = useThree((state) => state.gl) as WebGLRenderer;
+  const delivery = useMemo(
+    () => resolveGltfDelivery(asset, renderer),
+    [asset, renderer],
+  );
+  const gltf = useGLTF(
+    url,
+    delivery.useDraco,
+    delivery.useMeshopt,
+    delivery.extendLoader,
+  );
   const runtimeScene = useMemo(() => cloneScene(gltf.scene), [gltf.scene]);
   const mixerRef = useRef<AnimationMixer | null>(null);
   const hasActiveAnimationRef = useRef(false);
