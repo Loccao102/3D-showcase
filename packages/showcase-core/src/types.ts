@@ -2,12 +2,16 @@ export type Vec3 = readonly [number, number, number];
 
 export type RenderQuality = "low" | "medium" | "high";
 
-export interface CameraPreset {
-  id: string;
-  label: string;
+export interface CameraFraming {
   position: Vec3;
   target: Vec3;
   fov?: number;
+}
+
+export interface CameraPreset extends CameraFraming {
+  id: string;
+  label: string;
+  mobile?: CameraFraming;
 }
 
 export interface AssetLod {
@@ -21,6 +25,11 @@ export interface AssetSource {
   url?: string;
   fallbackImage?: string;
   lod?: AssetLod[];
+  slot?: string;
+  default?: boolean;
+  position?: Vec3;
+  rotation?: Vec3;
+  scale?: Vec3;
   metadata?: Record<string, unknown>;
 }
 
@@ -78,6 +87,7 @@ export interface Hotspot {
   id: string;
   label: string;
   position: Vec3;
+  anchorId?: string;
   contentKey?: string;
   cameraPresetId?: string;
   metadata?: Record<string, unknown>;
@@ -114,4 +124,27 @@ export interface RenderPolicy {
 
 export interface ShowcaseSelection {
   [groupId: string]: string[];
+}
+
+export interface ShowcaseSelectionSnapshot {
+  manifestId: string;
+  slug: string;
+  selection: ShowcaseSelection;
+  optionIds: string[];
+}
+
+export type ExperienceMode =
+  | "arrival"
+  | "explore"
+  | "detail"
+  | "configure"
+  | "technical"
+  | "transition";
+
+export interface ExperienceState {
+  mode: ExperienceMode;
+  activeHotspotId?: string;
+  activeCameraPresetId?: string;
+  selection: ShowcaseSelection;
+  userHasInteracted: boolean;
 }

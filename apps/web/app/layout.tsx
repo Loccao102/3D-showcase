@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "./showcase-v1.css";
 
 export const metadata: Metadata = {
   title: "3D Showcase",

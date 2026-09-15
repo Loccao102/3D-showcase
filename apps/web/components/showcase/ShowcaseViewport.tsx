@@ -1,33 +1,76 @@
 "use client";
 
 import type {
+  Hotspot,
   RenderPolicy,
   ShowcaseManifest,
   VariantBinding,
 } from "@showcase/core";
-import { ShowcaseCanvas, ShowcaseRuntime } from "@showcase/three";
-import { AutomotivePrototype } from "./AutomotivePrototype";
+import {
+  ShowcaseCanvas,
+  ShowcaseHotspots,
+  ShowcaseRuntime,
+  ShowcaseScene,
+  type AssetRuntimeEvent,
+} from "@showcase/three";
+import { useMemo } from "react";
 
 export interface ShowcaseViewportProps {
   manifest: ShowcaseManifest;
   renderPolicy: RenderPolicy;
   bindings: readonly VariantBinding[];
+  viewportWidth: number;
+  activeHotspotId?: string | undefined;
+  activeCameraPresetId?: string | undefined;
+  cameraRequestKey?: number | undefined;
+  onHotspotSelect?: ((hotspot: Hotspot) => void) | undefined;
+  onUserInteract?: (() => void) | undefined;
+  onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
 }
 
 export default function ShowcaseViewport({
   manifest,
   renderPolicy,
   bindings,
+  viewportWidth,
+  activeHotspotId,
+  activeCameraPresetId,
+  cameraRequestKey,
+  onHotspotSelect,
+  onUserInteract,
+  onAssetRuntimeEvent,
 }: ShowcaseViewportProps) {
+  const sceneMutationBindings = useMemo(
+    () =>
+      bindings.filter(
+        (binding) =>
+          binding.type === "material-color" || binding.type === "node-visibility",
+      ),
+    [bindings],
+  );
+
   return (
     <ShowcaseCanvas
       manifest={manifest}
       renderPolicy={renderPolicy}
       className="showcase-canvas"
+      activeCameraPresetId={activeCameraPresetId}
+      cameraRequestKey={cameraRequestKey}
+      onUserInteract={onUserInteract}
     >
-      <ShowcaseRuntime bindings={bindings}>
-        <AutomotivePrototype />
+      <ShowcaseRuntime bindings={sceneMutationBindings}>
+        <ShowcaseScene
+          manifest={manifest}
+          bindings={bindings}
+          viewportWidth={viewportWidth}
+          onAssetRuntimeEvent={onAssetRuntimeEvent}
+        />
       </ShowcaseRuntime>
+      <ShowcaseHotspots
+        hotspots={manifest.hotspots}
+        activeHotspotId={activeHotspotId}
+        onSelect={onHotspotSelect}
+      />
     </ShowcaseCanvas>
   );
 }

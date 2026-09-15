@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Astra One fallback poster">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#18212b"/>
+      <stop offset="58%" stop-color="#0b0f14"/>
+      <stop offset="100%" stop-color="#08090b"/>
+    </radialGradient>
+    <linearGradient id="car" x1="0" x2="1">
+      <stop offset="0%" stop-color="#202833"/>
+      <stop offset="48%" stop-color="#657181"/>
+      <stop offset="100%" stop-color="#202833"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <g opacity=".9" transform="translate(800 480)">
+    <ellipse cx="0" cy="170" rx="430" ry="58" fill="#000" opacity=".45"/>
+    <rect x="-390" y="-40" width="780" height="170" rx="70" fill="url(#car)"/>
+    <path d="M-210-45 L-85-150 H140 L245-45Z" fill="#141a22" stroke="#697789" stroke-width="4"/>
+    <circle cx="-260" cy="125" r="85" fill="#0b0c0f" stroke="#8b96a4" stroke-width="13"/>
+    <circle cx="260" cy="125" r="85" fill="#0b0c0f" stroke="#8b96a4" stroke-width="13"/>
+    <rect x="355" y="-8" width="34" height="70" rx="12" fill="#f6efc9" opacity=".95"/>
+  </g>
+  <text x="70" y="90" fill="#dce3ea" font-family="Arial, sans-serif" font-size="22" letter-spacing="8">SHOWCASE ENGINE V1</text>
+  <text x="70" y="835" fill="#727e8b" font-family="Arial, sans-serif" font-size="18" letter-spacing="4">LOADING INTERACTIVE 3D ASSET</text>
+</svg>
