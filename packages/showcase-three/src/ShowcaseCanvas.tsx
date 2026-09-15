@@ -21,10 +21,10 @@ export interface ShowcaseCanvasProps {
   manifest: ShowcaseManifest;
   renderPolicy: RenderPolicy;
   children: ReactNode;
-  className?: string;
-  activeCameraPresetId?: string;
-  cameraRequestKey?: string | number;
-  onUserInteract?: () => void;
+  className?: string | undefined;
+  activeCameraPresetId?: string | undefined;
+  cameraRequestKey?: string | number | undefined;
+  onUserInteract?: (() => void) | undefined;
 }
 
 type EnvironmentPreset = Exclude<
@@ -84,9 +84,9 @@ interface DirectedOrbitControlsProps {
   manifest: ShowcaseManifest;
   renderPolicy: RenderPolicy;
   initialTarget: readonly [number, number, number];
-  activeCameraPresetId?: string;
-  cameraRequestKey?: string | number;
-  onUserInteract?: () => void;
+  activeCameraPresetId?: string | undefined;
+  cameraRequestKey?: string | number | undefined;
+  onUserInteract?: (() => void) | undefined;
 }
 
 function DirectedOrbitControls({
@@ -206,7 +206,7 @@ function DirectedOrbitControls({
         transitionRef.current = null;
         onUserInteract?.();
       }}
-      onChange={invalidate}
+      onChange={() => invalidate()}
     />
   );
 }
