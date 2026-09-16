@@ -6,6 +6,7 @@ const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
 const GLB_BIN_CHUNK = 0x004e4942;
 const FLOAT_COMPONENT_TYPE = 5126;
+const ANIMATION_TARGET_PATHS = new Set(["translation", "rotation", "scale", "weights"]);
 
 function assert(condition, message) {
   if (!condition) {
@@ -73,7 +74,12 @@ async function loadBuffer(document, buffer, bufferIndex, filePath, baseDir, glbB
   }
 
   if (buffer.uri.startsWith("data:")) {
-    return decodeDataUri(buffer.uri, filePath, bufferIndex);
+    const decoded = decodeDataUri(buffer.uri, filePath, bufferIndex);
+    assert(
+      decoded.byteLength >= buffer.byteLength,
+      `${filePath}: embedded buffer ${bufferIndex} is smaller than declared byteLength`,
+    );
+    return decoded.subarray(0, buffer.byteLength);
   }
 
   const externalPath = resolve(baseDir, decodeURIComponent(buffer.uri));
@@ -146,12 +152,13 @@ function validateAnimations(document, filePath) {
         input.componentType === FLOAT_COMPONENT_TYPE && input.type === "SCALAR",
         `${filePath}: animation ${animation.name} sampler ${samplerIndex} input must be FLOAT SCALAR`,
       );
-
-      const interpolation = sampler.interpolation ?? "LINEAR";
-      const expectedOutputCount = interpolation === "CUBICSPLINE" ? input.count * 3 : input.count;
       assert(
-        output.count === expectedOutputCount,
-        `${filePath}: animation ${animation.name} sampler ${samplerIndex} output count is invalid`,
+        Number.isInteger(input.count) && input.count > 0,
+        `${filePath}: animation ${animation.name} sampler ${samplerIndex} input must contain keyframes`,
+      );
+      assert(
+        Number.isInteger(output.count) && output.count > 0,
+        `${filePath}: animation ${animation.name} sampler ${samplerIndex} output must contain values`,
       );
     }
 
@@ -160,15 +167,40 @@ function validateAnimations(document, filePath) {
       const targetNode = document.nodes?.[channel.target?.node];
       assert(sampler, `${filePath}: animation ${animation.name} channel ${channelIndex} has missing sampler`);
       assert(targetNode, `${filePath}: animation ${animation.name} channel ${channelIndex} has missing target node`);
+      assert(
+        ANIMATION_TARGET_PATHS.has(channel.target?.path),
+        `${filePath}: animation ${animation.name} channel ${channelIndex} has unsupported target path '${channel.target?.path}'`,
+      );
 
+      const input = document.accessors?.[sampler.input];
       const output = document.accessors?.[sampler.output];
-      const expectedType = channel.target.path === "rotation" ? "VEC4" : "VEC3";
-      if (channel.target.path !== "weights") {
+      assert(input && output, `${filePath}: animation ${animation.name} channel ${channelIndex} has invalid accessors`);
+
+      const interpolation = sampler.interpolation ?? "LINEAR";
+      const sampleMultiplier = interpolation === "CUBICSPLINE" ? 3 : 1;
+      const expectedKeyframeValues = input.count * sampleMultiplier;
+
+      if (channel.target.path === "weights") {
         assert(
-          output?.type === expectedType,
-          `${filePath}: animation ${animation.name} channel ${channelIndex} output must be ${expectedType}`,
+          output.type === "SCALAR",
+          `${filePath}: animation ${animation.name} channel ${channelIndex} weight output must be SCALAR`,
         );
+        assert(
+          output.count % expectedKeyframeValues === 0,
+          `${filePath}: animation ${animation.name} channel ${channelIndex} weight output count is invalid`,
+        );
+        continue;
       }
+
+      const expectedType = channel.target.path === "rotation" ? "VEC4" : "VEC3";
+      assert(
+        output.type === expectedType,
+        `${filePath}: animation ${animation.name} channel ${channelIndex} output must be ${expectedType}`,
+      );
+      assert(
+        output.count === expectedKeyframeValues,
+        `${filePath}: animation ${animation.name} channel ${channelIndex} output count is invalid`,
+      );
     }
   }
 }
