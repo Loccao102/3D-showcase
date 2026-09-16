@@ -1,0 +1,42 @@
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.showcase-hotspot:focus-visible,
+.finish-option:focus-visible,
+.stage-detail-card button:focus-visible,
+.selection-snapshot button:focus-visible {
+  border-color: rgba(109, 176, 255, 0.95);
+  box-shadow: 0 0 0 4px rgba(75, 159, 255, 0.18);
+}
+
+@media (prefers-contrast: more) {
+  .stage-status,
+  .stage-detail-card,
+  .showcase-hotspot,
+  .config-panel {
+    border-color: rgba(255, 255, 255, 0.58);
+  }
+
+  .stage-status,
+  .showcase-hotspot,
+  .config-group-heading,
+  .selection-snapshot span {
+    color: #f3f6f9;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(a, button, [tabindex]):focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  .showcase-hotspot,
+  .finish-option,
+  .stage-detail-card button,
+  .selection-snapshot button {
+    forced-color-adjust: auto;
+    border: 1px solid ButtonText;
+  }
+}
