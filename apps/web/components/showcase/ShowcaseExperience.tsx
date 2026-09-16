@@ -29,7 +29,8 @@ const manifest: ShowcaseManifest = {
   id: "automotive-concept-01",
   slug: "automotive-concept-01",
   title: "Astra One",
-  subtitle: "Automotive is the first vertical. The engine is not car-specific.",
+  subtitle:
+    "A self-authored automotive hero asset proves the engine with real GLB LODs while commerce remains optional.",
   scene: {
     assets: [
       {
@@ -37,27 +38,43 @@ const manifest: ShowcaseManifest = {
         kind: "gltf",
         slot: "subject",
         default: true,
-        url: "/models/astra-one-base.gltf",
+        url: "/models/astra-one-touring-lod0.glb",
         fallbackImage: "/showcase/astra-one-poster.svg",
         lod: [
           {
             maxViewportWidth: 720,
-            url: "/models/astra-one-base.gltf",
+            url: "/models/astra-one-touring-lod2.glb",
+          },
+          {
+            maxViewportWidth: 1200,
+            url: "/models/astra-one-touring-lod1.glb",
           },
         ],
+        metadata: {
+          provenance: "self-authored",
+          generator: "scripts/generate-astra-concept.mjs",
+        },
       },
       {
         id: "astra-sport",
         kind: "gltf",
         slot: "subject",
-        url: "/models/astra-one-sport.gltf",
+        url: "/models/astra-one-sport-lod0.glb",
         fallbackImage: "/showcase/astra-one-poster.svg",
         lod: [
           {
             maxViewportWidth: 720,
-            url: "/models/astra-one-sport.gltf",
+            url: "/models/astra-one-sport-lod2.glb",
+          },
+          {
+            maxViewportWidth: 1200,
+            url: "/models/astra-one-sport-lod1.glb",
           },
         ],
+        metadata: {
+          provenance: "self-authored",
+          generator: "scripts/generate-astra-concept.mjs",
+        },
       },
     ],
     environment: {
@@ -158,6 +175,30 @@ const manifest: ShowcaseManifest = {
         },
       ],
     },
+    {
+      id: "motion",
+      label: "Motion",
+      selection: "single",
+      defaultOptionIds: ["motion-static"],
+      options: [
+        {
+          id: "motion-static",
+          label: "Static",
+          bindings: [],
+        },
+        {
+          id: "motion-pulse",
+          label: "Signature pulse",
+          bindings: [
+            {
+              type: "animation-state",
+              target: "subject",
+              clip: "ANIM_signature_pulse",
+            },
+          ],
+        },
+      ],
+    },
   ],
   hotspots: [
     {
@@ -238,22 +279,23 @@ const manifest: ShowcaseManifest = {
   metadata: {
     vertical: "automotive",
     prototype: true,
-    engineVersion: "0.3",
+    assetStage: "self-authored-hero",
+    engineVersion: "0.4",
   },
 };
 
 const hotspotCopy: Record<string, { title: string; body: string }> = {
   lighting: {
     title: "Signature lighting",
-    body: "A guided detail state proves that hotspots can own camera framing without coupling the renderer to automotive business objects.",
+    body: "The production-style hero GLB exposes semantic light nodes plus an authored animation clip through the generic runtime.",
   },
   cabin: {
     title: "Cabin volume",
-    body: "The hotspot follows a semantic anchor inside the loaded asset, so future assets can move the cabin without rewriting DOM coordinates.",
+    body: "The hotspot follows a semantic anchor inside every LOD, so responsive asset changes do not rewrite DOM coordinates.",
   },
   rear: {
     title: "Rear profile",
-    body: "Direct manipulation can interrupt the camera flight at any time. The experience immediately yields control back to the visitor.",
+    body: "Touring and Sport are complete asset replacements while camera and configuration state remain owned by the generic engine.",
   },
 };
 
@@ -398,19 +440,19 @@ export function ShowcaseExperience({
           <span>3D / SHOWCASE</span>
         </a>
         <div className="header-meta">
-          <span>CORE 0.3</span>
+          <span>CORE 0.4</span>
           <span className="quality-chip">{renderPolicy.quality} render</span>
         </div>
       </header>
 
       <section className="showcase-layout" id="top">
         <div className="showcase-copy">
-          <p className="eyebrow">SHOWCASE ENGINE V1 / AUTOMOTIVE PROOF</p>
+          <p className="eyebrow">SHOWCASE ENGINE V1 / SELF-AUTHORED HERO</p>
           <h1>{manifest.title}</h1>
           <p className="lede">{manifest.subtitle}</p>
           <div className="proof-row" aria-label="Platform principles">
-            <span>Asset driven</span>
-            <span>Interruptible camera</span>
+            <span>Responsive GLB LOD</span>
+            <span>Semantic animation</span>
             <span>Commerce optional</span>
           </div>
         </div>
@@ -511,7 +553,7 @@ export function ShowcaseExperience({
                           />
                         ) : (
                           <span className="binding-icon" aria-hidden="true">
-                            {group.id === "trim" ? "↔" : "◉"}
+                            {group.id === "trim" ? "↔" : group.id === "motion" ? "▶" : "◉"}
                           </span>
                         )}
                         <span>{option.label}</span>
