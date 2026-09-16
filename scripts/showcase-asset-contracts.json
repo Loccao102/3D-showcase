@@ -18,7 +18,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 32768
+      "maxFileBytes": 32768,
+      "maxTriangles": 300
     },
     {
       "id": "astra-touring-lod1",
@@ -38,7 +39,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 28672
+      "maxFileBytes": 28672,
+      "maxTriangles": 220
     },
     {
       "id": "astra-touring-lod2",
@@ -57,7 +59,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 24576
+      "maxFileBytes": 24576,
+      "maxTriangles": 180
     },
     {
       "id": "astra-sport-lod0",
@@ -80,7 +83,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 32768
+      "maxFileBytes": 32768,
+      "maxTriangles": 300
     },
     {
       "id": "astra-sport-lod1",
@@ -102,7 +106,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 28672
+      "maxFileBytes": 28672,
+      "maxTriangles": 220
     },
     {
       "id": "astra-sport-lod2",
@@ -123,7 +128,8 @@
       ],
       "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "maxFileBytes": 24576
+      "maxFileBytes": 24576,
+      "maxTriangles": 180
     }
   ]
 }
