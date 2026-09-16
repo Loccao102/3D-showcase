@@ -1,0 +1,118 @@
+.runtime-diagnostics {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 8;
+  width: min(390px, calc(100% - 28px));
+  max-height: min(58%, 360px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(6, 8, 11, 0.88);
+  color: var(--text);
+  font-size: 10px;
+  backdrop-filter: blur(18px);
+}
+
+.runtime-diagnostics:not([open]) {
+  width: auto;
+  max-height: none;
+}
+
+.runtime-diagnostics summary {
+  padding: 9px 11px;
+  color: #cfd6dd;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+.runtime-diagnostics[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: minmax(82px, 0.6fr) minmax(0, 1.4fr);
+  gap: 8px 12px;
+  padding: 12px;
+}
+
+.diagnostics-grid span {
+  color: #717b85;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.diagnostics-grid strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #dfe6ed;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagnostics-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.diagnostics-actions button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #e0e7ee;
+  cursor: pointer;
+}
+
+.diagnostics-actions button:hover {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.diagnostics-actions span {
+  color: #69737d;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+@container (max-width: 620px) {
+  .runtime-diagnostics {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    max-height: 52%;
+  }
+
+  .runtime-diagnostics:not([open]) {
+    right: 10px;
+    left: auto;
+    width: auto;
+  }
+
+  .diagnostics-grid {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .diagnostics-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runtime-diagnostics,
+  .runtime-diagnostics * {
+    scroll-behavior: auto;
+  }
+}

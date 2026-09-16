@@ -92,6 +92,7 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 
 ## Device / performance QA — next
 
+- [x] provide an in-page diagnostics/export harness for viewport/DPR, browser hints, WebGL renderer capabilities, asset timing, frame telemetry and adaptive quality evidence
 - [ ] record loading timings for the generated hero LODs on representative devices
 - [x] expose per-asset load/readiness durations to the host
 - [x] add active-frame telemetry for demand rendering
