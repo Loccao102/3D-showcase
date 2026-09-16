@@ -1,0 +1,41 @@
+{
+  "assets": [
+    {
+      "id": "astra-base-reference",
+      "path": "apps/web/public/models/astra-one-base.gltf",
+      "profile": "reference",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear"
+      ],
+      "requiredMaterials": ["showcase-default"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "requireUnlit": true,
+      "maxFileBytes": 65536
+    },
+    {
+      "id": "astra-sport-reference",
+      "path": "apps/web/public/models/astra-one-sport.gltf",
+      "profile": "reference",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "sport-aero",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear"
+      ],
+      "requiredMaterials": ["showcase-default"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "requireUnlit": true,
+      "maxFileBytes": 65536
+    }
+  ]
+}
