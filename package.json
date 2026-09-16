@@ -7,7 +7,8 @@
     "dev": "pnpm --filter @showcase/web dev",
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
-    "validate:assets": "node scripts/validate-showcase-assets.mjs",
+    "generate:assets": "node scripts/generate-astra-concept.mjs",
+    "validate:assets": "pnpm generate:assets && node scripts/validate-showcase-assets.mjs && node scripts/validate-lod-budgets.mjs",
     "lint": "pnpm -r --if-present lint"
   }
 }

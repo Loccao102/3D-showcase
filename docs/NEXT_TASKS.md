@@ -59,7 +59,7 @@ Showcase Engine V1 core is now functionally complete. This file separates comple
 
 ## V1 Core — Reference vertical proof
 
-The automotive screen is a proof fixture, not part of the engine API.
+The automotive screen is a proof vertical, not part of the engine API.
 
 - [x] manifest-driven exterior color configuration
 - [x] manifest-driven whole-asset trim replacement
@@ -67,29 +67,32 @@ The automotive screen is a proof fixture, not part of the engine API.
 - [x] multiple camera presets including cabin/detail framing
 - [x] node visibility binding example
 - [x] configuration snapshot that an optional commerce adapter can consume
-- [x] self-owned lightweight glTF reference assets committed in-repo
-- [x] semantic animation clip committed in both reference assets for `animation-state` testing
+- [x] lightweight deterministic reference fixtures for CI regression coverage
+- [x] semantic animation clip available for `animation-state` testing
+- [x] live proof upgraded to a self-authored GLB hero family instead of cube-only fixtures
 
 ## Production asset hardening — next
 
-The runtime plumbing and CI gate for production delivery are now present, but browser/device validation stays open until a real asset exists.
+The runtime plumbing, structural CI gate and first reproducible hero family are present. Browser/device validation remains open where real measurements are required.
 
 - [x] keep Meshopt enabled through the generic Drei `useGLTF` path
 - [x] support optional KTX2/Basis textures through manifest delivery metadata
 - [x] self-host the Basis transcoder from the installed Three.js version before dev/build
 - [x] keep Draco explicit opt-in so normal assets do not create a hidden decoder dependency
 - [x] validate configured `.gltf` / `.glb` assets against semantic node, material, animation and byte-budget contracts in CI
-- [ ] replace the tiny reference glTF with a production-quality licensed/self-created vehicle asset
-- [ ] produce real LOD0 / LOD1 / LOD2 geometry
-- [ ] validate KTX2/Basis texture delivery on representative browsers using the production asset
-- [ ] validate Meshopt compression/decode tradeoffs on representative devices
-- [ ] document measured texture/geometry/network budgets for the production asset
-- [ ] validate semantic naming against the production asset
-- [ ] provide a production animation clip and bind it through the vertical manifest
+- [x] replace the live tiny reference render with a reproducible self-authored hero GLB family
+- [x] produce distinct LOD0 / LOD1 / LOD2 geometry for Touring and Sport variants
+- [x] document current hero file/node/triangle budgets and provenance in `docs/HERO_ASSET_V1.md`
+- [x] validate semantic naming against every generated hero LOD
+- [x] bind a real GLB animation clip through the vertical manifest while keeping static as the idle default
+- [ ] raise the hero from stylized concept quality to final art-directed / photoreal quality if the vertical requires it
+- [ ] add authored texture maps and validate KTX2/Basis delivery on representative browsers
+- [ ] validate Meshopt encode/decode tradeoffs on representative devices using the hero family
+- [ ] define final production texture/geometry/network ceilings from measured target devices
 
 ## Device / performance QA — next
 
-- [ ] record loading timings for the production asset
+- [ ] record loading timings for the generated hero LODs on representative devices
 - [x] expose per-asset load/readiness durations to the host
 - [x] add active-frame telemetry for demand rendering
 - [x] add sustained frame-time adaptive quality degradation with cooldown
