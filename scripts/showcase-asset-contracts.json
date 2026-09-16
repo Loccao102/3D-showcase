@@ -1,41 +1,129 @@
 {
   "assets": [
     {
-      "id": "astra-base-reference",
-      "path": "apps/web/public/models/astra-one-base.gltf",
-      "profile": "reference",
+      "id": "astra-touring-lod0",
+      "path": "apps/web/public/models/astra-one-touring-lod0.glb",
+      "profile": "self-authored-hero",
       "requiredNodes": [
         "body",
         "cabin",
         "front-light",
         "rear-light",
+        "wheel_fl",
+        "roof-accent",
         "anchor:front-light",
         "anchor:cabin",
-        "anchor:rear"
+        "anchor:rear",
+        "anchor:wheel-front"
       ],
-      "requiredMaterials": ["showcase-default"],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "requireUnlit": true,
-      "maxFileBytes": 65536
+      "maxFileBytes": 32768
     },
     {
-      "id": "astra-sport-reference",
-      "path": "apps/web/public/models/astra-one-sport.gltf",
-      "profile": "reference",
+      "id": "astra-touring-lod1",
+      "path": "apps/web/public/models/astra-one-touring-lod1.glb",
+      "profile": "self-authored-hero",
       "requiredNodes": [
         "body",
         "cabin",
         "front-light",
         "rear-light",
-        "sport-aero",
+        "wheel_fl",
+        "windshield-frame",
         "anchor:front-light",
         "anchor:cabin",
-        "anchor:rear"
+        "anchor:rear",
+        "anchor:wheel-front"
       ],
-      "requiredMaterials": ["showcase-default"],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
       "requiredAnimations": ["ANIM_signature_pulse"],
-      "requireUnlit": true,
-      "maxFileBytes": 65536
+      "maxFileBytes": 28672
+    },
+    {
+      "id": "astra-touring-lod2",
+      "path": "apps/web/public/models/astra-one-touring-lod2.glb",
+      "profile": "self-authored-hero",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "maxFileBytes": 24576
+    },
+    {
+      "id": "astra-sport-lod0",
+      "path": "apps/web/public/models/astra-one-sport-lod0.glb",
+      "profile": "self-authored-hero",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "sport-diffuser",
+        "roof-accent",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "maxFileBytes": 32768
+    },
+    {
+      "id": "astra-sport-lod1",
+      "path": "apps/web/public/models/astra-one-sport-lod1.glb",
+      "profile": "self-authored-hero",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "windshield-frame",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "maxFileBytes": 28672
+    },
+    {
+      "id": "astra-sport-lod2",
+      "path": "apps/web/public/models/astra-one-sport-lod2.glb",
+      "profile": "self-authored-hero",
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
+      "requiredAnimations": ["ANIM_signature_pulse"],
+      "maxFileBytes": 24576
     }
   ]
 }
