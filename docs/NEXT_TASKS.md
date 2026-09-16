@@ -68,22 +68,24 @@ The automotive screen is a proof fixture, not part of the engine API.
 - [x] node visibility binding example
 - [x] configuration snapshot that an optional commerce adapter can consume
 - [x] self-owned lightweight glTF reference assets committed in-repo
+- [x] semantic animation clip committed in both reference assets for `animation-state` testing
 
 ## Production asset hardening — next
 
-The runtime plumbing for compressed production delivery is now present, but browser/device validation stays open until a real asset exists.
+The runtime plumbing and CI gate for production delivery are now present, but browser/device validation stays open until a real asset exists.
 
 - [x] keep Meshopt enabled through the generic Drei `useGLTF` path
 - [x] support optional KTX2/Basis textures through manifest delivery metadata
 - [x] self-host the Basis transcoder from the installed Three.js version before dev/build
 - [x] keep Draco explicit opt-in so normal assets do not create a hidden decoder dependency
+- [x] validate configured `.gltf` / `.glb` assets against semantic node, material, animation and byte-budget contracts in CI
 - [ ] replace the tiny reference glTF with a production-quality licensed/self-created vehicle asset
 - [ ] produce real LOD0 / LOD1 / LOD2 geometry
 - [ ] validate KTX2/Basis texture delivery on representative browsers using the production asset
 - [ ] validate Meshopt compression/decode tradeoffs on representative devices
 - [ ] document measured texture/geometry/network budgets for the production asset
 - [ ] validate semantic naming against the production asset
-- [ ] provide a real animated clip to exercise the already-implemented `animation-state` runtime path
+- [ ] provide a production animation clip and bind it through the vertical manifest
 
 ## Device / performance QA — next
 
@@ -103,8 +105,9 @@ The runtime plumbing for compressed production delivery is now present, but brow
 - [x] light-cut arrival reveal with reduced-motion fallback
 - [x] perceptual material color morph instead of instant mutation
 - [x] generic spatial asset replacement entrance with reduced-motion fallback
-- [ ] optional high-tier ambient drift
-- [ ] final accessibility audit for contrast, screen reader announcements and keyboard order
+- [x] high-tier ambient drift implemented as CSS-only presentation so `frameloop="demand"` stays idle
+- [x] keyboard focus-visible and increased/forced-contrast fallbacks
+- [ ] manual accessibility audit for screen-reader announcements, keyboard order and measured contrast
 
 ## Explicitly deferred
 
