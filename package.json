@@ -8,7 +8,7 @@
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "generate:assets": "node scripts/generate-astra-concept.mjs",
-    "validate:assets": "pnpm generate:assets && node scripts/validate-showcase-assets.mjs",
+    "validate:assets": "pnpm generate:assets && node scripts/validate-showcase-assets.mjs && node scripts/validate-lod-budgets.mjs",
     "lint": "pnpm -r --if-present lint"
   }
 }
