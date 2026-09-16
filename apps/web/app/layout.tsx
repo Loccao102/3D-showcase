@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import "./showcase-v1.css";
 import "./showcase-motion.css";
+import "./showcase-accessibility.css";
 import "./showcase-fonts.css";
 
 const displayFont = Darker_Grotesque({
