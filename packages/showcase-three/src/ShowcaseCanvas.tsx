@@ -23,6 +23,18 @@ import {
 import { PerspectiveCamera, Vector3 } from "three";
 import { FrameTelemetry } from "./FrameTelemetry";
 
+export interface RendererDiagnostics {
+  webglVersion: "WebGL1" | "WebGL2";
+  vendor: string;
+  renderer: string;
+  precision: string;
+  maxTextureSize: number;
+  maxTextures: number;
+  maxVertexTextures: number;
+  maxSamples: number;
+  maxAnisotropy: number;
+}
+
 export interface ShowcaseCanvasProps {
   manifest: ShowcaseManifest;
   renderPolicy: RenderPolicy;
@@ -33,6 +45,7 @@ export interface ShowcaseCanvasProps {
   onUserInteract?: (() => void) | undefined;
   onPerformanceSample?: ((sample: FramePerformanceSample) => void) | undefined;
   onQualitySuggestion?: ((quality: RenderQuality) => void) | undefined;
+  onRendererDiagnostics?: ((diagnostics: RendererDiagnostics) => void) | undefined;
 }
 
 type EnvironmentPreset = Exclude<
@@ -86,6 +99,47 @@ function resolveFraming(
   }
 
   return viewportWidth < 720 && preset.mobile ? preset.mobile : preset;
+}
+
+function RendererDiagnosticsProbe({
+  onDiagnostics,
+}: {
+  onDiagnostics?: ((diagnostics: RendererDiagnostics) => void) | undefined;
+}) {
+  const renderer = useThree((state) => state.gl);
+
+  useEffect(() => {
+    if (!onDiagnostics) {
+      return;
+    }
+
+    const context = renderer.getContext();
+    const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
+    const vendor = String(
+      debugInfo
+        ? context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
+        : context.getParameter(context.VENDOR),
+    );
+    const rendererName = String(
+      debugInfo
+        ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        : context.getParameter(context.RENDERER),
+    );
+
+    onDiagnostics({
+      webglVersion: renderer.capabilities.isWebGL2 ? "WebGL2" : "WebGL1",
+      vendor,
+      renderer: rendererName,
+      precision: renderer.capabilities.precision,
+      maxTextureSize: renderer.capabilities.maxTextureSize,
+      maxTextures: renderer.capabilities.maxTextures,
+      maxVertexTextures: renderer.capabilities.maxVertexTextures,
+      maxSamples: renderer.capabilities.maxSamples,
+      maxAnisotropy: renderer.capabilities.getMaxAnisotropy(),
+    });
+  }, [onDiagnostics, renderer]);
+
+  return null;
 }
 
 interface DirectedOrbitControlsProps {
@@ -229,6 +283,7 @@ export function ShowcaseCanvas({
   onUserInteract,
   onPerformanceSample,
   onQualitySuggestion,
+  onRendererDiagnostics,
 }: ShowcaseCanvasProps) {
   const [runtimeQuality, setRuntimeQuality] = useState(renderPolicy.quality);
 
@@ -277,6 +332,7 @@ export function ShowcaseCanvas({
         }}
         shadows={effectivePolicy.enableShadows}
       >
+        <RendererDiagnosticsProbe onDiagnostics={onRendererDiagnostics} />
         <FrameTelemetry
           quality={effectivePolicy.quality}
           onSample={onPerformanceSample}
