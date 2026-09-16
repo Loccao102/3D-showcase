@@ -22,6 +22,17 @@
   animation: showcase-stage-arrival 700ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
 }
 
+.showcase-canvas[data-quality="high"] {
+  background-image:
+    radial-gradient(circle at 22% 28%, rgba(51, 123, 255, 0.11), transparent 34%),
+    radial-gradient(circle at 78% 64%, rgba(112, 201, 255, 0.075), transparent 30%);
+  background-position: 48% 48%, 52% 52%;
+  background-size: 128% 128%, 138% 138%;
+  animation:
+    showcase-stage-arrival 700ms cubic-bezier(0.2, 0.72, 0.2, 1) both,
+    showcase-ambient-drift 16s ease-in-out 900ms infinite alternate;
+}
+
 @keyframes showcase-light-cut {
   0% {
     opacity: 0;
@@ -56,9 +67,20 @@
   }
 }
 
+@keyframes showcase-ambient-drift {
+  from {
+    background-position: 46% 46%, 54% 54%;
+  }
+
+  to {
+    background-position: 55% 52%, 47% 46%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stage-frame::after,
-  .showcase-canvas {
+  .showcase-canvas,
+  .showcase-canvas[data-quality="high"] {
     animation: none;
   }
 }
