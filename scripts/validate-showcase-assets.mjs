@@ -6,6 +6,23 @@ const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
 const GLB_BIN_CHUNK = 0x004e4942;
 const FLOAT_COMPONENT_TYPE = 5126;
+const COMPONENT_BYTE_SIZE = new Map([
+  [5120, 1],
+  [5121, 1],
+  [5122, 2],
+  [5123, 2],
+  [5125, 4],
+  [5126, 4],
+]);
+const TYPE_COMPONENT_COUNT = new Map([
+  ["SCALAR", 1],
+  ["VEC2", 2],
+  ["VEC3", 3],
+  ["VEC4", 4],
+  ["MAT2", 4],
+  ["MAT3", 9],
+  ["MAT4", 16],
+]);
 const ANIMATION_TARGET_PATHS = new Set(["translation", "rotation", "scale", "weights"]);
 
 function assert(condition, message) {
@@ -130,9 +147,33 @@ function validateBufferRanges(document, decodedBuffers, filePath) {
       continue;
     }
 
+    const view = document.bufferViews?.[accessor.bufferView];
     assert(
-      document.bufferViews?.[accessor.bufferView],
+      view,
       `${filePath}: accessor ${index} references missing bufferView ${accessor.bufferView}`,
+    );
+
+    const componentByteSize = COMPONENT_BYTE_SIZE.get(accessor.componentType);
+    const componentCount = TYPE_COMPONENT_COUNT.get(accessor.type);
+    assert(componentByteSize, `${filePath}: accessor ${index} has unsupported componentType ${accessor.componentType}`);
+    assert(componentCount, `${filePath}: accessor ${index} has unsupported type '${accessor.type}'`);
+    assert(
+      Number.isInteger(accessor.count) && accessor.count >= 0,
+      `${filePath}: accessor ${index} has invalid count`,
+    );
+
+    const elementByteSize = componentByteSize * componentCount;
+    const stride = view.byteStride ?? elementByteSize;
+    const accessorOffset = accessor.byteOffset ?? 0;
+    assert(stride >= elementByteSize, `${filePath}: accessor ${index} byteStride is smaller than an element`);
+    assert(accessorOffset >= 0, `${filePath}: accessor ${index} has a negative byteOffset`);
+
+    const end = accessor.count === 0
+      ? accessorOffset
+      : accessorOffset + (accessor.count - 1) * stride + elementByteSize;
+    assert(
+      end <= view.byteLength,
+      `${filePath}: accessor ${index} exceeds bufferView ${accessor.bufferView}`,
     );
   }
 }
