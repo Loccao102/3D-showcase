@@ -14,6 +14,7 @@ import {
   ShowcaseRuntime,
   ShowcaseScene,
   type AssetRuntimeEvent,
+  type RendererDiagnostics,
 } from "@showcase/three";
 import { useMemo } from "react";
 
@@ -30,6 +31,7 @@ export interface ShowcaseViewportProps {
   onAssetRuntimeEvent?: ((event: AssetRuntimeEvent) => void) | undefined;
   onPerformanceSample?: ((sample: FramePerformanceSample) => void) | undefined;
   onQualitySuggestion?: ((quality: RenderQuality) => void) | undefined;
+  onRendererDiagnostics?: ((diagnostics: RendererDiagnostics) => void) | undefined;
 }
 
 export default function ShowcaseViewport({
@@ -45,6 +47,7 @@ export default function ShowcaseViewport({
   onAssetRuntimeEvent,
   onPerformanceSample,
   onQualitySuggestion,
+  onRendererDiagnostics,
 }: ShowcaseViewportProps) {
   const sceneMutationBindings = useMemo(
     () =>
@@ -65,6 +68,7 @@ export default function ShowcaseViewport({
       onUserInteract={onUserInteract}
       onPerformanceSample={onPerformanceSample}
       onQualitySuggestion={onQualitySuggestion}
+      onRendererDiagnostics={onRendererDiagnostics}
     >
       <ShowcaseRuntime
         bindings={sceneMutationBindings}
