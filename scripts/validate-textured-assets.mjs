@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 const CONTRACT_PATH = "scripts/showcase-asset-contracts.json";
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
+const TEXTURE_SIZE_BY_LOD = [64, 32, 16];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -35,6 +36,16 @@ function findMaterial(document, name, filePath) {
   return material;
 }
 
+function usedMaterialIndexes(document) {
+  const indexes = new Set();
+  for (const mesh of document.meshes ?? []) {
+    for (const primitive of mesh.primitives ?? []) {
+      if (Number.isInteger(primitive.material)) indexes.add(primitive.material);
+    }
+  }
+  return indexes;
+}
+
 function validateTextureReference(document, textureInfo, filePath, label) {
   assert(textureInfo && Number.isInteger(textureInfo.index), `${filePath}: ${label} texture is missing`);
   const texture = document.textures?.[textureInfo.index];
@@ -53,18 +64,33 @@ const contracts = JSON.parse(
   await readFile(resolve(process.cwd(), CONTRACT_PATH), "utf8"),
 ).assets ?? [];
 
+const measurements = [];
+
 for (const contract of contracts) {
   if (!contract.path?.endsWith(".glb")) continue;
 
+  const lodMatch = /-lod([0-2])$/.exec(contract.id ?? "");
+  assert(lodMatch, `${contract.id}: texture contract id must end in -lod0/-lod1/-lod2`);
+  const lod = Number(lodMatch[1]);
   const bytes = await readFile(resolve(process.cwd(), contract.path));
   const document = parseGlbDocument(bytes, contract.path);
 
   assert(
-    document.extras?.textureStage === "production-v3-embedded-png",
-    `${contract.path}: missing V3 texture stage marker`,
+    document.extras?.textureStage === "production-v4-texture-lod",
+    `${contract.path}: missing V4 texture LOD stage marker`,
   );
-  assert(document.images?.length >= 4, `${contract.path}: expected at least four embedded texture images`);
-  assert(document.textures?.length >= 4, `${contract.path}: expected at least four glTF textures`);
+  assert(document.extras?.textureLod === lod, `${contract.path}: textureLod marker must equal ${lod}`);
+  assert(
+    document.extras?.textureResolution === TEXTURE_SIZE_BY_LOD[lod],
+    `${contract.path}: expected ${TEXTURE_SIZE_BY_LOD[lod]}px texture tier`,
+  );
+  const expectedTextureCount = lod === 2 ? 3 : 4;
+  assert(
+    document.extras?.textureCount === expectedTextureCount,
+    `${contract.path}: expected ${expectedTextureCount} texture maps for LOD${lod}`,
+  );
+  assert(document.images?.length === expectedTextureCount, `${contract.path}: unexpected embedded image count`);
+  assert(document.textures?.length === expectedTextureCount, `${contract.path}: unexpected glTF texture count`);
   assert(document.samplers?.length >= 1, `${contract.path}: expected a texture sampler`);
 
   for (const [meshIndex, mesh] of (document.meshes ?? []).entries()) {
@@ -84,46 +110,87 @@ for (const contract of contracts) {
 
   const body = findMaterial(document, "body", contract.path);
   const tire = findMaterial(document, "tire", contract.path);
-  let textureBytes = 0;
-  textureBytes += validateTextureReference(
-    document,
-    body.pbrMetallicRoughness?.baseColorTexture,
-    contract.path,
-    "body baseColor",
-  );
-  textureBytes += validateTextureReference(
+  validateTextureReference(document, body.pbrMetallicRoughness?.baseColorTexture, contract.path, "body baseColor");
+  validateTextureReference(
     document,
     body.pbrMetallicRoughness?.metallicRoughnessTexture,
     contract.path,
     "body metallicRoughness",
   );
-  textureBytes += validateTextureReference(
-    document,
-    tire.pbrMetallicRoughness?.baseColorTexture,
-    contract.path,
-    "tire baseColor",
-  );
+  validateTextureReference(document, tire.pbrMetallicRoughness?.baseColorTexture, contract.path, "tire baseColor");
 
-  const interior = document.materials?.find((candidate) => candidate.name === "interior");
-  if (interior) {
-    textureBytes += validateTextureReference(
+  const usedMaterials = usedMaterialIndexes(document);
+  const interiorIndex = document.materials?.findIndex((candidate) => candidate.name === "interior") ?? -1;
+  const interior = interiorIndex >= 0 ? document.materials[interiorIndex] : undefined;
+  if (interior && usedMaterials.has(interiorIndex)) {
+    validateTextureReference(
       document,
       interior.pbrMetallicRoughness?.baseColorTexture,
       contract.path,
       "interior baseColor",
     );
+  } else if (interior) {
+    assert(
+      interior.pbrMetallicRoughness?.baseColorTexture === undefined,
+      `${contract.path}: unused interior material must not retain a mobile texture`,
+    );
+  }
+
+  const uniqueImageViews = new Set((document.images ?? []).map((image) => image.bufferView));
+  let textureBytes = 0;
+  for (const viewIndex of uniqueImageViews) {
+    assert(Number.isInteger(viewIndex), `${contract.path}: image is missing an embedded bufferView`);
+    const view = document.bufferViews?.[viewIndex];
+    assert(view && view.byteLength > 0, `${contract.path}: image bufferView ${viewIndex} is invalid`);
+    textureBytes += view.byteLength;
   }
 
   if (contract.maxEmbeddedTextureBytes !== undefined) {
     assert(
       textureBytes <= contract.maxEmbeddedTextureBytes,
-      `${contract.path}: ${textureBytes}B referenced texture payload exceeds maxEmbeddedTextureBytes ${contract.maxEmbeddedTextureBytes}`,
+      `${contract.path}: ${textureBytes}B texture payload exceeds maxEmbeddedTextureBytes ${contract.maxEmbeddedTextureBytes}`,
     );
   }
 
+  measurements.push({
+    id: contract.id,
+    groupId: contract.id.replace(/-lod[0-2]$/, ""),
+    lod,
+    textureBytes,
+    textureCount: document.images.length,
+    textureResolution: document.extras.textureResolution,
+  });
+
   console.log(
-    `✓ ${contract.id} texture contract | images=${document.images.length} textures=${document.textures.length} referenced=${textureBytes}B`,
+    `✓ ${contract.id} texture LOD | ${document.extras.textureResolution}px maps=${document.images.length} payload=${textureBytes}B`,
   );
 }
 
-console.log("Validated textured hero UV and embedded PNG contracts.");
+const groups = new Map();
+for (const measurement of measurements) {
+  const group = groups.get(measurement.groupId) ?? [];
+  group.push(measurement);
+  groups.set(measurement.groupId, group);
+}
+
+for (const [groupId, group] of groups) {
+  if (group.length !== 3) continue;
+  const sorted = group.sort((left, right) => left.lod - right.lod);
+  for (let index = 1; index < sorted.length; index += 1) {
+    const previous = sorted[index - 1];
+    const current = sorted[index];
+    assert(
+      current.textureBytes < previous.textureBytes,
+      `${groupId}: LOD${current.lod} texture payload must be smaller than LOD${previous.lod}`,
+    );
+    assert(
+      current.textureResolution < previous.textureResolution,
+      `${groupId}: LOD${current.lod} texture resolution must be smaller than LOD${previous.lod}`,
+    );
+  }
+  console.log(
+    `✓ ${groupId} texture monotonicity | px ${sorted.map((item) => item.textureResolution).join(" > ")} | bytes ${sorted.map((item) => item.textureBytes).join(" > ")}`,
+  );
+}
+
+console.log("Validated textured hero UV, material maps and texture LOD budgets.");

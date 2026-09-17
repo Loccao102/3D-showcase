@@ -6,6 +6,7 @@ const modelDir = resolve(process.cwd(), process.argv[2] ?? "apps/web/public/mode
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
 const GLB_BIN_CHUNK = 0x004e4942;
+const TEXTURE_SIZE_BY_LOD = [64, 32, 16];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -177,44 +178,51 @@ function hashNoise(x, y, seed) {
   return (value >>> 0) / 0xffffffff;
 }
 
-const textureImages = [
-  {
-    name: "paint-microflake",
-    bytes: makePng(64, 64, (x, y) => {
-      const grain = hashNoise(x, y, 11);
-      const sparkle = hashNoise(x, y, 73) > 0.982 ? 24 : 0;
-      const value = Math.min(255, 222 + Math.round(grain * 20) + sparkle);
-      return [value, value, Math.min(255, value + 3), 255];
-    }),
-  },
-  {
-    name: "paint-metallic-roughness",
-    bytes: makePng(64, 64, (x, y) => {
-      const grain = hashNoise(x, y, 29);
-      const roughness = 174 + Math.round(grain * 34);
-      const metallic = 222 + Math.round(hashNoise(x, y, 47) * 22);
-      return [255, roughness, metallic, 255];
-    }),
-  },
-  {
-    name: "interior-weave",
-    bytes: makePng(64, 64, (x, y) => {
-      const weave = ((x + y) % 8 < 2 || (x - y + 64) % 8 < 2) ? 214 : 238;
-      const grain = Math.round(hashNoise(x, y, 101) * 8);
-      const value = Math.max(0, weave - grain);
-      return [value, value, value, 255];
-    }),
-  },
-  {
-    name: "tire-tread",
-    bytes: makePng(64, 64, (x, y) => {
-      const groove = ((x + y * 2) % 14 < 4) || ((x - y * 2 + 256) % 19 < 3);
-      const base = groove ? 172 : 226;
-      const value = Math.max(0, base - Math.round(hashNoise(x, y, 151) * 14));
-      return [value, value, value, 255];
-    }),
-  },
-];
+function createTextureImages(size, includeInterior) {
+  const images = [
+    {
+      name: "paint-microflake",
+      bytes: makePng(size, size, (x, y) => {
+        const grain = hashNoise(x, y, 11);
+        const sparkle = hashNoise(x, y, 73) > 0.982 ? 24 : 0;
+        const value = Math.min(255, 222 + Math.round(grain * 20) + sparkle);
+        return [value, value, Math.min(255, value + 3), 255];
+      }),
+    },
+    {
+      name: "paint-metallic-roughness",
+      bytes: makePng(size, size, (x, y) => {
+        const grain = hashNoise(x, y, 29);
+        const roughness = 174 + Math.round(grain * 34);
+        const metallic = 222 + Math.round(hashNoise(x, y, 47) * 22);
+        return [255, roughness, metallic, 255];
+      }),
+    },
+    {
+      name: "tire-tread",
+      bytes: makePng(size, size, (x, y) => {
+        const groove = ((x + y * 2) % 14 < 4) || ((x - y * 2 + size * 4) % 19 < 3);
+        const base = groove ? 172 : 226;
+        const value = Math.max(0, base - Math.round(hashNoise(x, y, 151) * 14));
+        return [value, value, value, 255];
+      }),
+    },
+  ];
+
+  if (includeInterior) {
+    images.push({
+      name: "interior-weave",
+      bytes: makePng(size, size, (x, y) => {
+        const weave = ((x + y) % 8 < 2 || (x - y + size * 2) % 8 < 2) ? 214 : 238;
+        const grain = Math.round(hashNoise(x, y, 101) * 8);
+        const value = Math.max(0, weave - grain);
+        return [value, value, value, 255];
+      }),
+    });
+  }
+
+  return images;
+}
 
 function buildGlb(document, binary) {
   const logicalBinary = align4(binary);
@@ -240,7 +248,24 @@ function findMaterial(document, name, filePath) {
   return material;
 }
 
+function usedMaterialNames(document) {
+  const names = new Set();
+  for (const mesh of document.meshes ?? []) {
+    for (const primitive of mesh.primitives ?? []) {
+      if (Number.isInteger(primitive.material)) {
+        const material = document.materials?.[primitive.material];
+        if (material?.name) names.add(material.name);
+      }
+    }
+  }
+  return names;
+}
+
 async function textureAsset(fileName) {
+  const lodMatch = /-lod([0-2])\.glb$/.exec(fileName);
+  assert(lodMatch, `${fileName}: cannot resolve LOD tier`);
+  const lod = Number(lodMatch[1]);
+  const textureSize = TEXTURE_SIZE_BY_LOD[lod];
   const filePath = resolve(modelDir, fileName);
   const bytes = await readFile(filePath);
   const { document, binary: initialBinary } = parseGlb(bytes, fileName);
@@ -281,6 +306,10 @@ async function textureAsset(fileName) {
     }
   }
 
+  const materialsInUse = usedMaterialNames(document);
+  const includeInterior = lod < 2 && materialsInUse.has("interior");
+  const textureImages = createTextureImages(textureSize, includeInterior);
+
   const samplerIndex = document.samplers.push({
     magFilter: 9729,
     minFilter: 9987,
@@ -313,21 +342,25 @@ async function textureAsset(fileName) {
   const tire = findMaterial(document, "tire", fileName);
   tire.pbrMetallicRoughness.baseColorTexture = { index: textureIndexes.get("tire-tread") };
 
+  const interiorTextureIndex = textureIndexes.get("interior-weave");
   const interior = document.materials?.find((candidate) => candidate.name === "interior");
-  if (interior) {
-    interior.pbrMetallicRoughness.baseColorTexture = { index: textureIndexes.get("interior-weave") };
+  if (interior && interiorTextureIndex !== undefined) {
+    interior.pbrMetallicRoughness.baseColorTexture = { index: interiorTextureIndex };
   }
 
   document.extras ??= {};
-  document.extras.textureStage = "production-v3-embedded-png";
+  document.extras.textureStage = "production-v4-texture-lod";
   document.extras.textureOwnership = "self-authored-procedural";
   document.extras.textureCount = textureImages.length;
+  document.extras.textureResolution = textureSize;
+  document.extras.textureLod = lod;
   document.extras.uvStrategy = "generated-planar-per-primitive";
 
   const output = buildGlb(document, binary);
   await writeFile(filePath, output);
+  const texturePayloadBytes = textureImages.reduce((total, image) => total + image.bytes.length, 0);
   console.log(
-    `textured ${fileName} (${bytes.length}B -> ${output.length}B, ${textureImages.length} embedded PNG maps)`,
+    `textured ${fileName} (${bytes.length}B -> ${output.length}B, lod=${lod}, ${textureSize}px, ${textureImages.length} maps, textures=${texturePayloadBytes}B)`,
   );
 }
 
