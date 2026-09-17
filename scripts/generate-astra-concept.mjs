@@ -149,9 +149,9 @@ function findMinMax(positions) {
 }
 
 function buildCar(lod, sport) {
-  const wheelSegments = [20, 12, 8][lod];
+  const wheelSegments = [24, 16, 10][lod];
   const document = {
-    asset: { version: "2.0", generator: "OpenAI self-authored Astra One concept generator v1" },
+    asset: { version: "2.0", generator: "OpenAI self-authored Astra One concept generator v2" },
     scene: 0,
     scenes: [{ nodes: [0] }],
     nodes: [],
@@ -161,11 +161,19 @@ function buildCar(lod, sport) {
     bufferViews: [],
     buffers: [],
     animations: [],
+    extensionsUsed: [
+      "KHR_materials_clearcoat",
+      "KHR_materials_emissive_strength",
+      "KHR_materials_ior",
+      "KHR_materials_transmission",
+      "KHR_materials_volume",
+    ],
     extras: {
       ownership: "self-authored",
       vehicle: "Astra One",
       lod,
       variant: sport ? "sport" : "touring",
+      materialStage: "production-v2",
     },
   };
 
@@ -184,29 +192,73 @@ function buildCar(lod, sport) {
     return document.accessors.push(accessor) - 1;
   };
 
-  const addMaterial = (name, color, metallicFactor, roughnessFactor, emissive) => {
+  const addMaterial = (name, color, metallicFactor, roughnessFactor, options = {}) => {
     const material = {
       name,
       pbrMetallicRoughness: { baseColorFactor: color, metallicFactor, roughnessFactor },
     };
 
-    if (emissive) {
-      material.emissiveFactor = emissive;
-      material.extensions = { KHR_materials_emissive_strength: { emissiveStrength: 2.5 } };
-      document.extensionsUsed = ["KHR_materials_emissive_strength"];
+    if (options.alphaMode) material.alphaMode = options.alphaMode;
+    if (options.doubleSided) material.doubleSided = true;
+
+    const extensions = {};
+    if (options.clearcoat) {
+      extensions.KHR_materials_clearcoat = {
+        clearcoatFactor: options.clearcoat.factor,
+        clearcoatRoughnessFactor: options.clearcoat.roughness,
+      };
     }
+    if (options.transmission) {
+      extensions.KHR_materials_transmission = { transmissionFactor: options.transmission };
+    }
+    if (options.ior) {
+      extensions.KHR_materials_ior = { ior: options.ior };
+    }
+    if (options.volume) {
+      extensions.KHR_materials_volume = {
+        thicknessFactor: options.volume.thickness,
+        attenuationDistance: options.volume.distance,
+        attenuationColor: options.volume.color,
+      };
+    }
+    if (options.emissive) {
+      material.emissiveFactor = options.emissive.color;
+      extensions.KHR_materials_emissive_strength = {
+        emissiveStrength: options.emissive.strength,
+      };
+    }
+    if (Object.keys(extensions).length) material.extensions = extensions;
 
     return document.materials.push(material) - 1;
   };
 
   const materials = {
-    body: addMaterial("body", [0.07, 0.1, 0.15, 1], 0.75, 0.24),
-    glass: addMaterial("glass", [0.035, 0.07, 0.1, 0.78], 0.05, 0.12),
-    tire: addMaterial("tire", [0.015, 0.018, 0.022, 1], 0, 0.78),
-    rim: addMaterial("rim", [0.24, 0.27, 0.31, 1], 0.82, 0.2),
-    trim: addMaterial("trim", [0.03, 0.035, 0.04, 1], 0.35, 0.4),
-    frontLight: addMaterial("light", [0.72, 0.84, 1, 1], 0.15, 0.14, [0.48, 0.7, 1]),
-    rearLight: addMaterial("rear-light", [0.8, 0.03, 0.04, 1], 0.1, 0.18, [1, 0.02, 0.02]),
+    body: addMaterial("body", [0.075, 0.105, 0.16, 1], 0.72, 0.2, {
+      clearcoat: { factor: 1, roughness: 0.08 },
+    }),
+    glass: addMaterial("glass", [0.035, 0.065, 0.09, 0.28], 0.02, 0.08, {
+      alphaMode: "BLEND",
+      doubleSided: true,
+      transmission: 0.78,
+      ior: 1.45,
+      volume: { thickness: 0.012, distance: 3.5, color: [0.16, 0.28, 0.36] },
+    }),
+    tire: addMaterial("tire", [0.012, 0.014, 0.018, 1], 0.02, 0.86),
+    rim: addMaterial("rim", [0.27, 0.3, 0.34, 1], 0.9, 0.16, {
+      clearcoat: { factor: 0.35, roughness: 0.12 },
+    }),
+    trim: addMaterial("trim", [0.025, 0.03, 0.035, 1], 0.45, 0.28),
+    interior: addMaterial("interior", [0.025, 0.028, 0.033, 1], 0.02, 0.72),
+    accent: addMaterial("interior-accent", [0.16, 0.17, 0.18, 1], 0.62, 0.24),
+    caliper: addMaterial("brake-caliper", [0.72, 0.045, 0.025, 1], 0.55, 0.28, {
+      clearcoat: { factor: 0.55, roughness: 0.16 },
+    }),
+    frontLight: addMaterial("light", [0.72, 0.84, 1, 1], 0.15, 0.14, {
+      emissive: { color: [0.48, 0.7, 1], strength: 3.2 },
+    }),
+    rearLight: addMaterial("rear-light", [0.8, 0.03, 0.04, 1], 0.1, 0.18, {
+      emissive: { color: [1, 0.02, 0.02], strength: 3 },
+    }),
   };
 
   const meshCache = new Map();
@@ -221,29 +273,14 @@ function buildCar(lod, sport) {
         : makeCylinder(wheelSegments);
     const [min, max] = findMinMax(geometry.positions);
     const positionAccessor = appendAccessor(
-      packFloats(geometry.positions),
-      5126,
-      geometry.positions.length / 3,
-      "VEC3",
-      34962,
-      min,
-      max,
+      packFloats(geometry.positions), 5126, geometry.positions.length / 3, "VEC3", 34962, min, max,
     );
     const normalAccessor = appendAccessor(
-      packFloats(geometry.normals),
-      5126,
-      geometry.normals.length / 3,
-      "VEC3",
-      34962,
+      packFloats(geometry.normals), 5126, geometry.normals.length / 3, "VEC3", 34962,
     );
     const indexAccessor = appendAccessor(
-      packU16(geometry.indices),
-      5123,
-      geometry.indices.length,
-      "SCALAR",
-      34963,
-      [Math.min(...geometry.indices)],
-      [Math.max(...geometry.indices)],
+      packU16(geometry.indices), 5123, geometry.indices.length, "SCALAR", 34963,
+      [Math.min(...geometry.indices)], [Math.max(...geometry.indices)],
     );
     const meshIndex = document.meshes.push({
       name,
@@ -289,15 +326,21 @@ function buildCar(lod, sport) {
   addNode("rear-light-secondary", box(materials.rearLight, "MESH_rear_light"), [-2.25, 0.92, -0.62], [0.06, 0.14, 0.48]);
 
   const wheelPositions = [
-    [-1.45, 0.48, 0.96],
-    [1.42, 0.48, 0.96],
-    [-1.45, 0.48, -0.96],
-    [1.42, 0.48, -0.96],
+    [-1.45, 0.48, 0.96], [1.42, 0.48, 0.96], [-1.45, 0.48, -0.96], [1.42, 0.48, -0.96],
   ];
   const wheelNames = ["wheel_rl", "wheel_fl", "wheel_rr", "wheel_fr"];
   wheelPositions.forEach((position, index) => {
     addNode(wheelNames[index], cylinder(materials.tire, "MESH_tire"), position, [0.66, 0.66, 0.28]);
-    addNode(`${wheelNames[index]}_rim`, cylinder(materials.rim, "MESH_rim"), position, [0.39, 0.39, 0.3]);
+    addNode(`${wheelNames[index]}_rim`, cylinder(materials.rim, "MESH_rim"), position, [0.41, 0.41, 0.3]);
+    if (lod <= 1) {
+      const side = position[2] > 0 ? 1 : -1;
+      addNode(
+        `${wheelNames[index]}_caliper`,
+        box(materials.caliper, "MESH_caliper"),
+        [position[0] + 0.05, position[1], position[2] + 0.012 * side],
+        [0.17, 0.3, 0.035],
+      );
+    }
   });
 
   if (lod <= 1) {
@@ -306,6 +349,13 @@ function buildCar(lod, sport) {
     addNode("mirror-left", box(materials.body, "MESH_mirror"), [0.52, 1.24, 0.99], [0.25, 0.12, 0.11]);
     addNode("mirror-right", box(materials.body, "MESH_mirror"), [0.52, 1.24, -0.99], [0.25, 0.12, 0.11]);
     addNode("front-splitter", box(materials.trim, "MESH_aero"), [2.23, 0.39, 0], [0.22, 0.07, 1.9]);
+
+    addNode("dashboard", box(materials.interior, "MESH_dashboard"), [0.48, 1.12, 0], [0.34, 0.18, 1.2]);
+    addNode("center-console", box(materials.accent, "MESH_console"), [-0.15, 0.93, 0], [1.15, 0.15, 0.22]);
+    addNode("seat-front-left", wedge(materials.interior, "MESH_seat"), [0.05, 0.98, 0.46], [0.42, 0.62, 0.42]);
+    addNode("seat-front-right", wedge(materials.interior, "MESH_seat"), [0.05, 0.98, -0.46], [0.42, 0.62, 0.42]);
+    addNode("seat-rear", wedge(materials.interior, "MESH_seat_rear"), [-0.82, 0.98, 0], [0.46, 0.58, 1.05]);
+    addNode("steering-wheel", cylinder(materials.accent, "MESH_steering"), [0.42, 1.18, 0.48], [0.24, 0.24, 0.06]);
   }
 
   if (lod === 0) {
@@ -314,6 +364,8 @@ function buildCar(lod, sport) {
     });
     addNode("roof-accent", box(materials.trim, "MESH_trim"), [-0.1, 1.67, 0], [1.2, 0.055, 1.25]);
     addNode("lower-grille", box(materials.trim, "MESH_grille"), [2.285, 0.68, 0], [0.045, 0.2, 0.9]);
+    addNode("instrument-screen", box(materials.frontLight, "MESH_screen"), [0.41, 1.18, 0.22], [0.03, 0.18, 0.4]);
+    addNode("center-screen", box(materials.frontLight, "MESH_screen"), [0.33, 1.19, -0.16], [0.025, 0.23, 0.3]);
   }
 
   if (sport) {
@@ -330,19 +382,10 @@ function buildCar(lod, sport) {
   addNode("anchor:wheel-front", null, [1.42, 0.48, 0.96]);
 
   const animationInput = appendAccessor(
-    packFloats([0, 0.45, 0.9]),
-    5126,
-    3,
-    "SCALAR",
-    undefined,
-    [0],
-    [0.9],
+    packFloats([0, 0.45, 0.9]), 5126, 3, "SCALAR", undefined, [0], [0.9],
   );
   const animationOutput = appendAccessor(
-    packFloats([0.07, 0.16, 0.5, 0.085, 0.19, 0.56, 0.07, 0.16, 0.5]),
-    5126,
-    3,
-    "VEC3",
+    packFloats([0.07, 0.16, 0.5, 0.085, 0.19, 0.56, 0.07, 0.16, 0.5]), 5126, 3, "VEC3",
   );
   document.animations.push({
     name: "ANIM_signature_pulse",
@@ -353,18 +396,16 @@ function buildCar(lod, sport) {
   binary = align4(binary);
   document.buffers = [{ byteLength: binary.length }];
 
-  let json = padJson(Buffer.from(JSON.stringify(document)));
+  const json = padJson(Buffer.from(JSON.stringify(document)));
   const paddedBinary = align4(binary);
   const totalLength = 12 + 8 + json.length + 8 + paddedBinary.length;
   const header = Buffer.alloc(12);
   header.writeUInt32LE(0x46546c67, 0);
   header.writeUInt32LE(2, 4);
   header.writeUInt32LE(totalLength, 8);
-
   const jsonHeader = Buffer.alloc(8);
   jsonHeader.writeUInt32LE(json.length, 0);
   jsonHeader.writeUInt32LE(0x4e4f534a, 4);
-
   const binaryHeader = Buffer.alloc(8);
   binaryHeader.writeUInt32LE(paddedBinary.length, 0);
   binaryHeader.writeUInt32LE(0x004e4942, 4);
