@@ -85,8 +85,10 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] document current hero file/node/triangle budgets and provenance in `docs/HERO_ASSET_V1.md`
 - [x] validate semantic naming against every generated hero LOD
 - [x] bind a real GLB animation clip through the vertical manifest while keeping static as the idle default
+- [x] upgrade physical material response with clearcoat paint, transmissive glass, cabin and brake detail
+- [x] add deterministic `TEXCOORD_0` UVs and authored embedded PNG maps for paint, metallic/roughness, interior and tire surfaces
 - [ ] raise the hero from stylized concept quality to final art-directed / photoreal quality if the vertical requires it
-- [ ] add authored texture maps and validate KTX2/Basis delivery on representative browsers
+- [ ] promote authored texture maps to KTX2/Basis and validate delivery on representative browsers
 - [ ] validate Meshopt encode/decode tradeoffs on representative devices using the hero family
 - [ ] define final production texture/geometry/network ceilings from measured target devices
 

@@ -14,7 +14,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 40960,
+      "maxFileBytes": 63488,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 420
     },
     {
@@ -31,7 +32,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 35840,
+      "maxFileBytes": 57344,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 320
     },
     {
@@ -48,7 +50,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 28672,
+      "maxFileBytes": 43008,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 220
     },
     {
@@ -65,7 +68,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 43008,
+      "maxFileBytes": 64512,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 460
     },
     {
@@ -82,7 +86,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 37888,
+      "maxFileBytes": 57344,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 360
     },
     {
@@ -99,7 +104,8 @@
         "light": ["KHR_materials_emissive_strength"]
       },
       "requiredAlphaMode": { "glass": "BLEND" },
-      "maxFileBytes": 30720,
+      "maxFileBytes": 43008,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 260
     }
   ]
