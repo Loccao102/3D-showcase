@@ -15,6 +15,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 63488,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 420
     },
     {
@@ -32,6 +33,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 57344,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 320
     },
     {
@@ -49,6 +51,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 43008,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 220
     },
     {
@@ -66,6 +69,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 64512,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 460
     },
     {
@@ -83,6 +87,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 57344,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 360
     },
     {
@@ -100,6 +105,7 @@
       },
       "requiredAlphaMode": { "glass": "BLEND" },
       "maxFileBytes": 43008,
+      "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 260
     }
   ]
