@@ -117,6 +117,8 @@ async function encodeImage(tempDir, image, pngBytes) {
     linear ? "R8G8B8A8_UNORM" : "R8G8B8A8_SRGB",
     "--assign-tf",
     linear ? "linear" : "srgb",
+    "--assign-primaries",
+    linear ? "none" : "bt709",
     "--generate-mipmap",
     "--encode",
     "basis-lz",
