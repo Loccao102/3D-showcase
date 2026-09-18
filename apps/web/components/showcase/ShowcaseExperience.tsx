@@ -27,14 +27,19 @@ const ShowcaseViewport = dynamic(() => import("./ShowcaseViewport"), {
 
 const assetEncoding =
   process.env.NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING === "ktx2" ? "ktx2" : "png";
+const useKtx2Runtime = assetEncoding === "ktx2";
+const runtimeAssetProfile = useKtx2Runtime
+  ? "ktx2-lod0-lod1-png-lod2"
+  : "png";
 
 function heroModelUrl(variant: "touring" | "sport", lod: 0 | 1 | 2) {
-  const suffix = assetEncoding === "ktx2" ? "-ktx2" : "";
+  const useKtx2ForTier = useKtx2Runtime && lod < 2;
+  const suffix = useKtx2ForTier ? "-ktx2" : "";
   return `/models/astra-one-${variant}-lod${lod}${suffix}.glb`;
 }
 
 const runtimeDeliveryMetadata =
-  assetEncoding === "ktx2"
+  useKtx2Runtime
     ? {
         delivery: {
           meshopt: true,
@@ -72,7 +77,7 @@ const manifest: ShowcaseManifest = {
         metadata: {
           provenance: "self-authored",
           generator: "scripts/generate-astra-concept.mjs",
-          assetEncoding,
+          assetEncoding: runtimeAssetProfile,
           ...runtimeDeliveryMetadata,
         },
       },
@@ -95,7 +100,7 @@ const manifest: ShowcaseManifest = {
         metadata: {
           provenance: "self-authored",
           generator: "scripts/generate-astra-concept.mjs",
-          assetEncoding,
+          assetEncoding: runtimeAssetProfile,
           ...runtimeDeliveryMetadata,
         },
       },
