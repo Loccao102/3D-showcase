@@ -65,7 +65,27 @@ Production KTX2 builds opt in through the public build-time environment variable
 NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING=ktx2 pnpm --filter @showcase/web build
 ```
 
-When KTX2 is enabled, the prebuild stage runs the real promotion step and the runtime manifest points to the `*-ktx2.glb` assets. The manifest also enables the self-hosted Three.js Basis transcoder through `delivery.ktx2TranscoderPath=/basis/`.
+When KTX2 is enabled, the prebuild stage runs the real promotion step. The runtime currently selects KTX2 for LOD0 and LOD1, while LOD2 keeps the smaller PNG GLB until mobile profiling proves that the GPU/decode benefit justifies the extra network bytes. The manifest enables the self-hosted Three.js Basis transcoder through `delivery.ktx2TranscoderPath=/basis/`.
+
+## Measured V5 payloads
+
+The first pinned Linux x86_64 CI measurement produced:
+
+| Tier | Touring PNG | Touring KTX2 | KTX2 payload | Runtime decision |
+| --- | ---: | ---: | ---: | --- |
+| LOD0 / 64px | 60,820 B | 48,184 B | 6,010 B | KTX2 |
+| LOD1 / 32px | 41,440 B | 40,112 B | 3,795 B | KTX2 |
+| LOD2 / 16px | 22,760 B | 23,644 B | 2,020 B | PNG for now |
+
+Sport follows the same texture payloads and measures 48,448 B / 40,284 B / 23,816 B for the KTX2 GLBs.
+
+This is why the runtime does not blindly equate texture compression with smaller network delivery. LOD2 is intentionally left on PNG until representative mobile GPU memory, upload and transcode measurements are available.
+
+The CI ceilings are locked near those measurements:
+
+- LOD0 KTX2 GLB: 49,152 B; embedded KTX2 payload: 6,144 B;
+- LOD1 KTX2 GLB: 41,984 B; embedded KTX2 payload: 4,096 B;
+- LOD2 KTX2 GLB: 24,576 B; embedded KTX2 payload: 2,048 B.
 
 ## CI gates
 
