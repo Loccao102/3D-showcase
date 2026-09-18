@@ -40,15 +40,32 @@ async function waitForServer(server, logTail) {
   throw new Error(`Next server did not become ready within ${SERVER_TIMEOUT_MS}ms.\n${logTail()}`);
 }
 
+function signalServerTree(server, signal) {
+  if (!server.pid) return;
+
+  if (process.platform === "win32") {
+    spawn("taskkill", ["/pid", String(server.pid), "/t", signal === "SIGKILL" ? "/f" : ""].filter(Boolean), {
+      stdio: "ignore",
+    });
+    return;
+  }
+
+  try {
+    process.kill(-server.pid, signal);
+  } catch {
+    server.kill(signal);
+  }
+}
+
 async function stopServer(server) {
   if (server.exitCode !== null) return;
 
-  server.kill("SIGTERM");
+  signalServerTree(server, "SIGTERM");
 
   await Promise.race([
     new Promise((resolve) => server.once("exit", resolve)),
     delay(5_000).then(() => {
-      if (server.exitCode === null) server.kill("SIGKILL");
+      if (server.exitCode === null) signalServerTree(server, "SIGKILL");
     }),
   ]);
 }
@@ -180,6 +197,7 @@ const server = spawn(
       NODE_ENV: "production",
     },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: process.platform !== "win32",
   },
 );
 
