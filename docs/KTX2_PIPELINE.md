@@ -100,13 +100,24 @@ The CI ceilings are locked near those measurements:
 
 The web build then runs again with `NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING=ktx2`, so a green CI run proves that the final Next.js build is produced from the KTX2 runtime asset path rather than only validating an unused side artifact.
 
+## Chromium production smoke
+
+The CI web job starts the compiled Next.js production server and opens it with Playwright against the Google Chrome already installed on the GitHub Ubuntu runner.
+
+The smoke gate verifies two runtime paths:
+
+- desktop 1440x900 reaches showcase `ready` after loading `astra-one-touring-lod0-ktx2.glb` and the self-hosted `basis_transcoder.wasm`;
+- mobile 390x844 reaches `ready` after loading the smaller PNG `astra-one-touring-lod2.glb`, and rejects accidental LOD2 KTX2 selection.
+
+The test also requires a real WebGL canvas, fails on model/Basis request failures and page errors, and runs against the production build rather than the dev server.
+
 ## Evidence boundary
 
-This pipeline proves real KTX2 encoding, glTF extension wiring, structural validation and production-build integration.
+This pipeline proves real KTX2 encoding, glTF extension wiring, structural validation, production-build integration and a successful Chromium runtime decode/transcode smoke path.
 
 It does **not** by itself prove:
 
-- decode/transcode behavior on Safari or Android GPUs;
+- decode/transcode behavior on Safari or physical Android GPUs;
 - measured upload/decode time on representative devices;
 - visual quality equivalence at final art resolution;
 - whether BasisLZ or UASTC is the best final codec for a future photoreal asset;

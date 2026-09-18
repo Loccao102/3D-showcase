@@ -90,7 +90,8 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] scale texture resolution and map set by LOD, with CI-enforced monotonic texture payload budgets
 - [ ] raise the hero from stylized concept quality to final art-directed / photoreal quality if the vertical requires it
 - [x] promote authored texture maps to real BasisLZ KTX2 runtime GLBs with pinned encoder + CI validation
-- [ ] validate KTX2/Basis decode and delivery on representative browsers/devices
+- [x] validate KTX2/Basis decode and adaptive LOD delivery in production Chromium CI smoke
+- [ ] validate KTX2/Basis decode, GPU upload and timings on iOS Safari + representative Android devices
 - [ ] validate Meshopt encode/decode tradeoffs on representative devices using the hero family
 - [ ] define final production texture/geometry/network ceilings from measured target devices
 
