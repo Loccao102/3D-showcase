@@ -460,8 +460,10 @@ function buildCar(lod, sport) {
   });
 
   if (lod <= 1) {
-    addNode("windshield-frame", box(materials.trim, "MESH_trim"), [0.62, 1.49, 0], [0.075, 0.62, 1.48]);
-    addNode("rear-glass-frame", box(materials.trim, "MESH_trim"), [-1.0, 1.45, 0], [0.075, 0.54, 1.43]);
+    addNode("windshield-frame", box(materials.trim, "MESH_pillar"), [0.62, 1.47, 0.77], [0.075, 0.56, 0.045]);
+    addNode("windshield-frame-right", box(materials.trim, "MESH_pillar"), [0.62, 1.47, -0.77], [0.075, 0.56, 0.045]);
+    addNode("rear-glass-frame", box(materials.trim, "MESH_pillar"), [-1.0, 1.44, 0.74], [0.075, 0.5, 0.045]);
+    addNode("rear-glass-frame-right", box(materials.trim, "MESH_pillar"), [-1.0, 1.44, -0.74], [0.075, 0.5, 0.045]);
     addNode("b-pillar-left", box(materials.trim, "MESH_pillar"), [-0.2, 1.42, 0.79], [0.08, 0.5, 0.035]);
     addNode("b-pillar-right", box(materials.trim, "MESH_pillar"), [-0.2, 1.42, -0.79], [0.08, 0.5, 0.035]);
     addNode("mirror-left", box(materials.body, "MESH_mirror"), [0.56, 1.24, 1.0], [0.28, 0.1, 0.12]);
