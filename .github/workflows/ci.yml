@@ -54,7 +54,7 @@ jobs:
           GLTFPACK_BIN="$(find "$RUNNER_TEMP/gltfpack" -type f -name gltfpack | head -n 1)"
           test -n "$GLTFPACK_BIN"
           sudo install -m 0755 "$GLTFPACK_BIN" /usr/local/bin/gltfpack
-          gltfpack -h >/dev/null
+          gltfpack -v
 
       - name: Validate showcase assets
         run: pnpm validate:assets:production
