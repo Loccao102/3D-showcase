@@ -55,6 +55,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Browser smoke test KTX2 delivery
+        timeout-minutes: 3
         run: pnpm smoke:browser:ktx2
 
   api:
