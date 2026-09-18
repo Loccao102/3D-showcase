@@ -4,109 +4,370 @@
       "id": "astra-touring-lod0",
       "path": "apps/web/public/models/astra-one-touring-lod0.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "roof-accent", "dashboard", "seat-front-left", "steering-wheel", "wheel_fl_caliper", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "interior", "interior-accent", "brake-caliper", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "roof-accent",
+        "dashboard",
+        "seat-front-left",
+        "steering-wheel",
+        "wheel_fl_caliper",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "interior",
+        "interior-accent",
+        "brake-caliper",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 62464,
       "maxEmbeddedTextureBytes": 20480,
-      "maxTriangles": 420
+      "maxTriangles": 420,
+      "maxKtx2FileBytes": 49152,
+      "maxKtx2PayloadBytes": 6144
     },
     {
       "id": "astra-touring-lod1",
       "path": "apps/web/public/models/astra-one-touring-lod1.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "windshield-frame", "dashboard", "seat-front-left", "steering-wheel", "wheel_fl_caliper", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "interior", "interior-accent", "brake-caliper", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "windshield-frame",
+        "dashboard",
+        "seat-front-left",
+        "steering-wheel",
+        "wheel_fl_caliper",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "interior",
+        "interior-accent",
+        "brake-caliper",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 43008,
       "maxEmbeddedTextureBytes": 6144,
-      "maxTriangles": 320
+      "maxTriangles": 320,
+      "maxKtx2FileBytes": 41984,
+      "maxKtx2PayloadBytes": 4096
     },
     {
       "id": "astra-touring-lod2",
       "path": "apps/web/public/models/astra-one-touring-lod2.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 24576,
       "maxEmbeddedTextureBytes": 2048,
-      "maxTriangles": 220
+      "maxTriangles": 220,
+      "maxKtx2FileBytes": 24576,
+      "maxKtx2PayloadBytes": 2048
     },
     {
       "id": "astra-sport-lod0",
       "path": "apps/web/public/models/astra-one-sport-lod0.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "sport-aero", "sport-spoiler", "sport-diffuser", "roof-accent", "dashboard", "seat-front-left", "steering-wheel", "wheel_fl_caliper", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "interior", "interior-accent", "brake-caliper", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "sport-diffuser",
+        "roof-accent",
+        "dashboard",
+        "seat-front-left",
+        "steering-wheel",
+        "wheel_fl_caliper",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "interior",
+        "interior-accent",
+        "brake-caliper",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 62464,
       "maxEmbeddedTextureBytes": 20480,
-      "maxTriangles": 460
+      "maxTriangles": 460,
+      "maxKtx2FileBytes": 49152,
+      "maxKtx2PayloadBytes": 6144
     },
     {
       "id": "astra-sport-lod1",
       "path": "apps/web/public/models/astra-one-sport-lod1.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "sport-aero", "sport-spoiler", "windshield-frame", "dashboard", "seat-front-left", "steering-wheel", "wheel_fl_caliper", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "interior", "interior-accent", "brake-caliper", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "windshield-frame",
+        "dashboard",
+        "seat-front-left",
+        "steering-wheel",
+        "wheel_fl_caliper",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "interior",
+        "interior-accent",
+        "brake-caliper",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 43008,
       "maxEmbeddedTextureBytes": 6144,
-      "maxTriangles": 360
+      "maxTriangles": 360,
+      "maxKtx2FileBytes": 41984,
+      "maxKtx2PayloadBytes": 4096
     },
     {
       "id": "astra-sport-lod2",
       "path": "apps/web/public/models/astra-one-sport-lod2.glb",
       "profile": "self-authored-hero",
-      "requiredNodes": ["body", "cabin", "front-light", "rear-light", "wheel_fl", "sport-aero", "sport-spoiler", "anchor:front-light", "anchor:cabin", "anchor:rear", "anchor:wheel-front"],
-      "requiredMaterials": ["body", "glass", "tire", "rim", "light", "rear-light"],
-      "requiredAnimations": ["ANIM_signature_pulse"],
-      "requiredExtensions": ["KHR_materials_clearcoat", "KHR_materials_emissive_strength", "KHR_materials_ior", "KHR_materials_transmission", "KHR_materials_volume"],
+      "requiredNodes": [
+        "body",
+        "cabin",
+        "front-light",
+        "rear-light",
+        "wheel_fl",
+        "sport-aero",
+        "sport-spoiler",
+        "anchor:front-light",
+        "anchor:cabin",
+        "anchor:rear",
+        "anchor:wheel-front"
+      ],
+      "requiredMaterials": [
+        "body",
+        "glass",
+        "tire",
+        "rim",
+        "light",
+        "rear-light"
+      ],
+      "requiredAnimations": [
+        "ANIM_signature_pulse"
+      ],
+      "requiredExtensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_emissive_strength",
+        "KHR_materials_ior",
+        "KHR_materials_transmission",
+        "KHR_materials_volume"
+      ],
       "requiredMaterialExtensions": {
-        "body": ["KHR_materials_clearcoat"],
-        "glass": ["KHR_materials_transmission", "KHR_materials_ior", "KHR_materials_volume"],
-        "light": ["KHR_materials_emissive_strength"]
+        "body": [
+          "KHR_materials_clearcoat"
+        ],
+        "glass": [
+          "KHR_materials_transmission",
+          "KHR_materials_ior",
+          "KHR_materials_volume"
+        ],
+        "light": [
+          "KHR_materials_emissive_strength"
+        ]
       },
-      "requiredAlphaMode": { "glass": "BLEND" },
+      "requiredAlphaMode": {
+        "glass": "BLEND"
+      },
       "maxFileBytes": 24576,
       "maxEmbeddedTextureBytes": 2048,
-      "maxTriangles": 260
+      "maxTriangles": 260,
+      "maxKtx2FileBytes": 24576,
+      "maxKtx2PayloadBytes": 2048
     }
   ]
 }

@@ -89,7 +89,8 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] add deterministic `TEXCOORD_0` UVs and authored embedded PNG maps for paint, metallic/roughness, interior and tire surfaces
 - [x] scale texture resolution and map set by LOD, with CI-enforced monotonic texture payload budgets
 - [ ] raise the hero from stylized concept quality to final art-directed / photoreal quality if the vertical requires it
-- [ ] promote authored texture maps to KTX2/Basis and validate delivery on representative browsers
+- [x] promote authored texture maps to real BasisLZ KTX2 runtime GLBs with pinned encoder + CI validation
+- [ ] validate KTX2/Basis decode and delivery on representative browsers/devices
 - [ ] validate Meshopt encode/decode tradeoffs on representative devices using the hero family
 - [ ] define final production texture/geometry/network ceilings from measured target devices
 

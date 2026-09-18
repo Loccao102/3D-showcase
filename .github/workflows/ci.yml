@@ -31,13 +31,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Install KTX encoder
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/KhronosGroup/KTX-Software/releases/download/v4.4.2/KTX-Software-4.4.2-Linux-x86_64.deb \
+            --output "$RUNNER_TEMP/ktx-software.deb"
+          echo "ca635ed489d8bf54fac8d7687056c651193de0740830a7738cc034adc63e3027  $RUNNER_TEMP/ktx-software.deb" | sha256sum --check
+          sudo apt-get install -y "$RUNNER_TEMP/ktx-software.deb"
+          ktx --version
+
       - name: Validate showcase assets
-        run: pnpm validate:assets
+        run: pnpm validate:assets:production
 
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build web
+      - name: Build web with KTX2 runtime assets
+        env:
+          NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING: ktx2
         run: pnpm --filter @showcase/web build
 
   api:
