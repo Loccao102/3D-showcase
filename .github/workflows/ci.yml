@@ -51,6 +51,12 @@ jobs:
           NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING: ktx2
         run: pnpm --filter @showcase/web build
 
+      - name: Install Chromium smoke browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser smoke test KTX2 delivery
+        run: pnpm smoke:browser:ktx2
+
   api:
     runs-on: ubuntu-latest
     defaults:
