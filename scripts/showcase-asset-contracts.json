@@ -61,7 +61,10 @@
       "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 420,
       "maxKtx2FileBytes": 49152,
-      "maxKtx2PayloadBytes": 6144
+      "maxKtx2PayloadBytes": 6144,
+      "maxMeshoptFileBytes": 25088,
+      "maxMeshoptPayloadBytes": 4352,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-touring-lod1",
@@ -124,7 +127,10 @@
       "maxEmbeddedTextureBytes": 6144,
       "maxTriangles": 320,
       "maxKtx2FileBytes": 41984,
-      "maxKtx2PayloadBytes": 4096
+      "maxKtx2PayloadBytes": 4096,
+      "maxMeshoptFileBytes": 21120,
+      "maxMeshoptPayloadBytes": 3584,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-touring-lod2",
@@ -179,7 +185,10 @@
       "maxEmbeddedTextureBytes": 2048,
       "maxTriangles": 220,
       "maxKtx2FileBytes": 24576,
-      "maxKtx2PayloadBytes": 2048
+      "maxKtx2PayloadBytes": 2048,
+      "maxMeshoptFileBytes": 15104,
+      "maxMeshoptPayloadBytes": 2688,
+      "maxMeshoptRuntimeRatio": 0.67
     },
     {
       "id": "astra-sport-lod0",
@@ -245,7 +254,10 @@
       "maxEmbeddedTextureBytes": 20480,
       "maxTriangles": 460,
       "maxKtx2FileBytes": 49152,
-      "maxKtx2PayloadBytes": 6144
+      "maxKtx2PayloadBytes": 6144,
+      "maxMeshoptFileBytes": 25408,
+      "maxMeshoptPayloadBytes": 4352,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-sport-lod1",
@@ -310,7 +322,10 @@
       "maxEmbeddedTextureBytes": 6144,
       "maxTriangles": 360,
       "maxKtx2FileBytes": 41984,
-      "maxKtx2PayloadBytes": 4096
+      "maxKtx2PayloadBytes": 4096,
+      "maxMeshoptFileBytes": 21376,
+      "maxMeshoptPayloadBytes": 3584,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-sport-lod2",
@@ -367,7 +382,10 @@
       "maxEmbeddedTextureBytes": 2048,
       "maxTriangles": 260,
       "maxKtx2FileBytes": 24576,
-      "maxKtx2PayloadBytes": 2048
+      "maxKtx2PayloadBytes": 2048,
+      "maxMeshoptFileBytes": 15360,
+      "maxMeshoptPayloadBytes": 2688,
+      "maxMeshoptRuntimeRatio": 0.67
     }
   ]
 }

@@ -92,7 +92,8 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] promote authored texture maps to real BasisLZ KTX2 runtime GLBs with pinned encoder + CI validation
 - [x] validate KTX2/Basis decode and adaptive LOD delivery in production Chromium CI smoke
 - [ ] validate KTX2/Basis decode, GPU upload and timings on iOS Safari + representative Android devices
-- [ ] validate Meshopt encode/decode tradeoffs on representative devices using the hero family
+- [x] encode the hero runtime family with real `EXT_meshopt_compression`, lock measured byte ceilings and validate decode in production Chromium CI
+- [ ] profile Meshopt decode/CPU/GPU tradeoffs on representative Android + iOS devices
 - [ ] define final production texture/geometry/network ceilings from measured target devices
 
 ## Device / performance QA — next

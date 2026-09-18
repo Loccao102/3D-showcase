@@ -28,14 +28,19 @@ const ShowcaseViewport = dynamic(() => import("./ShowcaseViewport"), {
 const assetEncoding =
   process.env.NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING === "ktx2" ? "ktx2" : "png";
 const useKtx2Runtime = assetEncoding === "ktx2";
-const runtimeAssetProfile = useKtx2Runtime
+const useMeshoptRuntime = process.env.NEXT_PUBLIC_SHOWCASE_MESHOPT === "1";
+const textureProfile = useKtx2Runtime
   ? "ktx2-lod0-lod1-png-lod2"
   : "png";
+const runtimeAssetProfile = useMeshoptRuntime
+  ? `${textureProfile}+meshopt`
+  : textureProfile;
 
 function heroModelUrl(variant: "touring" | "sport", lod: 0 | 1 | 2) {
   const useKtx2ForTier = useKtx2Runtime && lod < 2;
-  const suffix = useKtx2ForTier ? "-ktx2" : "";
-  return `/models/astra-one-${variant}-lod${lod}${suffix}.glb`;
+  const textureSuffix = useKtx2ForTier ? "-ktx2" : "";
+  const meshoptSuffix = useMeshoptRuntime ? "-meshopt" : "";
+  return `/models/astra-one-${variant}-lod${lod}${textureSuffix}${meshoptSuffix}.glb`;
 }
 
 const runtimeDeliveryMetadata =

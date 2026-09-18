@@ -6,10 +6,13 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const useKtx2 =
   process.env.SHOWCASE_ASSET_ENCODING === "ktx2" ||
   process.env.NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING === "ktx2";
+const useMeshopt =
+  process.env.SHOWCASE_MESHOPT === "1" ||
+  process.env.NEXT_PUBLIC_SHOWCASE_MESHOPT === "1";
 
-function runNode(script) {
+function runNode(script, args = []) {
   const scriptPath = resolve(projectRoot, script);
-  const result = spawnSync(process.execPath, [scriptPath], {
+  const result = spawnSync(process.execPath, [scriptPath, ...args], {
     cwd: projectRoot,
     stdio: "inherit",
     env: process.env,
@@ -28,4 +31,10 @@ if (useKtx2) {
   console.log(
     "Preparing PNG-textured hero assets. Set SHOWCASE_ASSET_ENCODING=ktx2 to promote runtime GLBs.",
   );
+}
+
+if (useMeshopt) {
+  const sourceProfile = useKtx2 ? "ktx2-hybrid" : "png";
+  console.log(`Preparing Meshopt runtime hero assets from ${sourceProfile} sources.`);
+  runNode("scripts/promote-meshopt.mjs", [sourceProfile]);
 }

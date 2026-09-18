@@ -10,9 +10,11 @@
     "generate:assets": "node scripts/generate-astra-concept.mjs && node scripts/texture-astra-concept.mjs",
     "generate:assets:ktx2": "pnpm generate:assets && node scripts/promote-ktx2.mjs",
     "validate:assets": "pnpm generate:assets && node scripts/validate-showcase-assets.mjs && node scripts/validate-lod-budgets.mjs && node scripts/validate-material-contracts.mjs && node scripts/validate-textured-assets.mjs",
-    "validate:assets:production": "pnpm validate:assets && node scripts/promote-ktx2.mjs && node scripts/validate-ktx2-assets.mjs",
+    "validate:assets:production": "pnpm validate:assets && node scripts/promote-ktx2.mjs && node scripts/validate-ktx2-assets.mjs && node scripts/promote-meshopt.mjs ktx2-hybrid && node scripts/validate-meshopt-assets.mjs",
     "lint": "pnpm -r --if-present lint",
-    "smoke:browser:ktx2": "node scripts/smoke-ktx2-browser.mjs"
+    "smoke:browser:ktx2": "node scripts/smoke-ktx2-browser.mjs",
+    "generate:assets:meshopt": "pnpm generate:assets:ktx2 && node scripts/promote-meshopt.mjs ktx2-hybrid",
+    "smoke:browser:runtime": "node scripts/smoke-ktx2-browser.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"
