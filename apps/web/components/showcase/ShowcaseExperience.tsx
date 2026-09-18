@@ -25,6 +25,25 @@ const ShowcaseViewport = dynamic(() => import("./ShowcaseViewport"), {
   ),
 });
 
+const assetEncoding =
+  process.env.NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING === "ktx2" ? "ktx2" : "png";
+
+function heroModelUrl(variant: "touring" | "sport", lod: 0 | 1 | 2) {
+  const suffix = assetEncoding === "ktx2" ? "-ktx2" : "";
+  return `/models/astra-one-${variant}-lod${lod}${suffix}.glb`;
+}
+
+const runtimeDeliveryMetadata =
+  assetEncoding === "ktx2"
+    ? {
+        delivery: {
+          meshopt: true,
+          draco: false,
+          ktx2TranscoderPath: "/basis/",
+        },
+      }
+    : {};
+
 const manifest: ShowcaseManifest = {
   id: "automotive-concept-01",
   slug: "automotive-concept-01",
@@ -38,37 +57,39 @@ const manifest: ShowcaseManifest = {
         kind: "gltf",
         slot: "subject",
         default: true,
-        url: "/models/astra-one-touring-lod0.glb",
+        url: heroModelUrl("touring", 0),
         fallbackImage: "/showcase/astra-one-poster.svg",
         lod: [
           {
             maxViewportWidth: 720,
-            url: "/models/astra-one-touring-lod2.glb",
+            url: heroModelUrl("touring", 2),
           },
           {
             maxViewportWidth: 1200,
-            url: "/models/astra-one-touring-lod1.glb",
+            url: heroModelUrl("touring", 1),
           },
         ],
         metadata: {
           provenance: "self-authored",
           generator: "scripts/generate-astra-concept.mjs",
+          assetEncoding,
+          ...runtimeDeliveryMetadata,
         },
       },
       {
         id: "astra-sport",
         kind: "gltf",
         slot: "subject",
-        url: "/models/astra-one-sport-lod0.glb",
+        url: heroModelUrl("sport", 0),
         fallbackImage: "/showcase/astra-one-poster.svg",
         lod: [
           {
             maxViewportWidth: 720,
-            url: "/models/astra-one-sport-lod2.glb",
+            url: heroModelUrl("sport", 2),
           },
           {
             maxViewportWidth: 1200,
-            url: "/models/astra-one-sport-lod1.glb",
+            url: heroModelUrl("sport", 1),
           },
         ],
         metadata: {
