@@ -39,7 +39,7 @@ function runGltfpack(args, label) {
   return (result.stdout ?? "").trim();
 }
 
-runGltfpack(["-h"], "gltfpack availability");
+runGltfpack(["-v"], "gltfpack version check");
 
 for (const variant of ["touring", "sport"]) {
   for (const lod of [0, 1, 2]) {
