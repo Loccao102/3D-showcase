@@ -8,6 +8,8 @@ const PORT = 4173;
 const BASE_URL = `http://${HOST}:${PORT}`;
 const SERVER_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 30_000;
+const expectMeshopt = process.env.SHOWCASE_EXPECT_MESHOPT === "1";
+const meshoptSuffix = expectMeshopt ? "-meshopt" : "";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -231,22 +233,34 @@ try {
   });
 
   await runSmokeCase(browser, {
-    label: "desktop KTX2 browser decode",
+    label: expectMeshopt
+      ? "desktop KTX2 + Meshopt browser decode"
+      : "desktop KTX2 browser decode",
     viewport: { width: 1440, height: 900 },
-    expectedModel: "/models/astra-one-touring-lod0-ktx2.glb",
-    forbiddenModel: "/models/astra-one-touring-lod0.glb",
+    expectedModel: `/models/astra-one-touring-lod0-ktx2${meshoptSuffix}.glb`,
+    forbiddenModel: expectMeshopt
+      ? "/models/astra-one-touring-lod0-ktx2.glb"
+      : "/models/astra-one-touring-lod0.glb",
     requireBasisTranscoder: true,
   });
 
   await runSmokeCase(browser, {
-    label: "mobile adaptive PNG delivery",
+    label: expectMeshopt
+      ? "mobile PNG + Meshopt delivery"
+      : "mobile adaptive PNG delivery",
     viewport: { width: 390, height: 844 },
-    expectedModel: "/models/astra-one-touring-lod2.glb",
-    forbiddenModel: "/models/astra-one-touring-lod2-ktx2.glb",
+    expectedModel: `/models/astra-one-touring-lod2${meshoptSuffix}.glb`,
+    forbiddenModel: expectMeshopt
+      ? "/models/astra-one-touring-lod2.glb"
+      : "/models/astra-one-touring-lod2-ktx2.glb",
     requireBasisTranscoder: false,
   });
 
-  console.log("Validated browser runtime delivery for desktop KTX2 and mobile PNG LOD2.");
+  console.log(
+    expectMeshopt
+      ? "Validated browser runtime delivery for KTX2/PNG texture policy with Meshopt geometry."
+      : "Validated browser runtime delivery for desktop KTX2 and mobile PNG LOD2.",
+  );
 } finally {
   await browser?.close();
   await stopServer(server);
