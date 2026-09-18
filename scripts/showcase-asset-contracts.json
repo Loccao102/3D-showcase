@@ -62,9 +62,9 @@
       "maxTriangles": 420,
       "maxKtx2FileBytes": 49152,
       "maxKtx2PayloadBytes": 6144,
-      "maxMeshoptFileBytes": 25600,
-      "maxMeshoptPayloadBytes": 4608,
-      "maxMeshoptRuntimeRatio": 0.55
+      "maxMeshoptFileBytes": 25088,
+      "maxMeshoptPayloadBytes": 4352,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-touring-lod1",
@@ -128,9 +128,9 @@
       "maxTriangles": 320,
       "maxKtx2FileBytes": 41984,
       "maxKtx2PayloadBytes": 4096,
-      "maxMeshoptFileBytes": 21504,
-      "maxMeshoptPayloadBytes": 3840,
-      "maxMeshoptRuntimeRatio": 0.56
+      "maxMeshoptFileBytes": 21120,
+      "maxMeshoptPayloadBytes": 3584,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-touring-lod2",
@@ -186,9 +186,9 @@
       "maxTriangles": 220,
       "maxKtx2FileBytes": 24576,
       "maxKtx2PayloadBytes": 2048,
-      "maxMeshoptFileBytes": 15360,
-      "maxMeshoptPayloadBytes": 2816,
-      "maxMeshoptRuntimeRatio": 0.68
+      "maxMeshoptFileBytes": 15104,
+      "maxMeshoptPayloadBytes": 2688,
+      "maxMeshoptRuntimeRatio": 0.67
     },
     {
       "id": "astra-sport-lod0",
@@ -255,9 +255,9 @@
       "maxTriangles": 460,
       "maxKtx2FileBytes": 49152,
       "maxKtx2PayloadBytes": 6144,
-      "maxMeshoptFileBytes": 25856,
-      "maxMeshoptPayloadBytes": 4608,
-      "maxMeshoptRuntimeRatio": 0.55
+      "maxMeshoptFileBytes": 25408,
+      "maxMeshoptPayloadBytes": 4352,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-sport-lod1",
@@ -323,9 +323,9 @@
       "maxTriangles": 360,
       "maxKtx2FileBytes": 41984,
       "maxKtx2PayloadBytes": 4096,
-      "maxMeshoptFileBytes": 21760,
-      "maxMeshoptPayloadBytes": 3840,
-      "maxMeshoptRuntimeRatio": 0.56
+      "maxMeshoptFileBytes": 21376,
+      "maxMeshoptPayloadBytes": 3584,
+      "maxMeshoptRuntimeRatio": 0.54
     },
     {
       "id": "astra-sport-lod2",
@@ -383,9 +383,9 @@
       "maxTriangles": 260,
       "maxKtx2FileBytes": 24576,
       "maxKtx2PayloadBytes": 2048,
-      "maxMeshoptFileBytes": 15616,
-      "maxMeshoptPayloadBytes": 2816,
-      "maxMeshoptRuntimeRatio": 0.68
+      "maxMeshoptFileBytes": 15360,
+      "maxMeshoptPayloadBytes": 2688,
+      "maxMeshoptRuntimeRatio": 0.67
     }
   ]
 }
