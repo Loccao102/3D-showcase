@@ -219,6 +219,7 @@ try {
 
   browser = await chromium.launch({
     headless: true,
+    timeout: 30_000,
     args: [
       "--use-angle=swiftshader",
       "--enable-webgl",
