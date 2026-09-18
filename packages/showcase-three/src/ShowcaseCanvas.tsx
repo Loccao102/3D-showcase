@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
+import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   resolveAdaptiveRenderPolicy,
@@ -74,6 +74,57 @@ function mapEnvironmentPreset(
   }
 
   return preset;
+}
+
+function ProceduralStudioEnvironment({
+  intensity,
+  quality,
+}: {
+  intensity: number;
+  quality: RenderQuality;
+}) {
+  const resolution = quality === "high" ? 256 : 128;
+
+  return (
+    <Environment
+      resolution={resolution}
+      background={false}
+      environmentIntensity={intensity}
+    >
+      <Lightformer
+        form="rect"
+        intensity={4.8}
+        color="#f6f9ff"
+        position={[0, 5.5, -4.5]}
+        rotation={[Math.PI / 2.6, 0, 0]}
+        scale={[8, 3.2, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={3.2}
+        color="#dceaff"
+        position={[5.5, 2.4, 1.2]}
+        rotation={[0, -Math.PI / 2, 0]}
+        scale={[5.5, 2.2, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={2.6}
+        color="#b9d8ff"
+        position={[-5.5, 2.1, -1.8]}
+        rotation={[0, Math.PI / 2, 0]}
+        scale={[4.5, 2, 1]}
+      />
+      <Lightformer
+        form="ring"
+        intensity={2.4}
+        color="#ffffff"
+        position={[0, 1.4, 5.5]}
+        rotation={[0, Math.PI, 0]}
+        scale={2.2}
+      />
+    </Environment>
+  );
 }
 
 function easeInOutCubic(value: number) {
@@ -342,16 +393,29 @@ export function ShowcaseCanvas({
           }}
         />
         <Suspense fallback={null}>
-          <ambientLight intensity={0.55} />
+          <ambientLight intensity={0.42} />
           <directionalLight
             castShadow={effectivePolicy.enableShadows}
-            intensity={2.2}
+            intensity={2.6}
             position={[5, 8, 4]}
           />
-          <Environment
-            preset={mapEnvironmentPreset(manifest.scene.environment?.preset)}
-            environmentIntensity={manifest.scene.environment?.intensity ?? 0.85}
+          <directionalLight
+            intensity={0.85}
+            position={[-4, 3.5, -5]}
           />
+          {!manifest.scene.environment?.preset ||
+          manifest.scene.environment.preset === "studio" ||
+          manifest.scene.environment.preset === "neutral" ? (
+            <ProceduralStudioEnvironment
+              intensity={manifest.scene.environment?.intensity ?? 0.85}
+              quality={effectivePolicy.quality}
+            />
+          ) : (
+            <Environment
+              preset={mapEnvironmentPreset(manifest.scene.environment.preset)}
+              environmentIntensity={manifest.scene.environment?.intensity ?? 0.85}
+            />
+          )}
           {children}
           {effectivePolicy.enableShadows ? (
             <ContactShadows
