@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node ../../scripts/generate-astra-concept.mjs && node ../../scripts/texture-astra-concept.mjs && node ../../scripts/sync-basis-transcoder.mjs",
+    "predev": "node ../../scripts/prepare-showcase-assets.mjs && node ../../scripts/sync-basis-transcoder.mjs",
     "dev": "next dev",
-    "prebuild": "node ../../scripts/generate-astra-concept.mjs && node ../../scripts/texture-astra-concept.mjs && node ../../scripts/sync-basis-transcoder.mjs",
+    "prebuild": "node ../../scripts/prepare-showcase-assets.mjs && node ../../scripts/sync-basis-transcoder.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
