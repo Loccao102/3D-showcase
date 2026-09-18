@@ -95,6 +95,8 @@ const manifest: ShowcaseManifest = {
         metadata: {
           provenance: "self-authored",
           generator: "scripts/generate-astra-concept.mjs",
+          assetEncoding,
+          ...runtimeDeliveryMetadata,
         },
       },
     ],
