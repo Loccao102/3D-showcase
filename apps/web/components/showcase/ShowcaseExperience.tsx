@@ -59,7 +59,7 @@ const manifest: ShowcaseManifest = {
   slug: "automotive-concept-01",
   title: "Astra One",
   subtitle:
-    "A self-authored automotive hero asset proves the engine with real GLB LODs while commerce remains optional.",
+    "A self-authored, art-directed concept proves the engine with authored silhouette, real GLB LODs and production delivery while commerce remains optional.",
   scene: {
     assets: [
       {
@@ -128,7 +128,7 @@ const manifest: ShowcaseManifest = {
           id: "finish-graphite",
           label: "Graphite",
           bindings: [
-            { type: "material-color", target: "body", value: "#2b3038" },
+            { type: "material-color", target: "body", value: "#424c58" },
           ],
         },
         {
@@ -312,7 +312,7 @@ const manifest: ShowcaseManifest = {
   metadata: {
     vertical: "automotive",
     prototype: true,
-    assetStage: "self-authored-hero",
+    assetStage: "self-authored-hero-v2",
     engineVersion: "0.4",
   },
 };
@@ -320,11 +320,11 @@ const manifest: ShowcaseManifest = {
 const hotspotCopy: Record<string, { title: string; body: string }> = {
   lighting: {
     title: "Signature lighting",
-    body: "The production-style hero GLB exposes semantic light nodes plus an authored animation clip through the generic runtime.",
+    body: "The Hero V2 front graphic combines semantic light nodes, a full-width signature bar and an authored animation clip through the generic runtime.",
   },
   cabin: {
     title: "Cabin volume",
-    body: "The hotspot follows a semantic anchor inside every LOD, so responsive asset changes do not rewrite DOM coordinates.",
+    body: "The tapered canopy, pillars and interior detail remain anchored semantically across every LOD, so responsive asset changes do not rewrite DOM coordinates.",
   },
   rear: {
     title: "Rear profile",
@@ -480,7 +480,7 @@ export function ShowcaseExperience({
 
       <section className="showcase-layout" id="top">
         <div className="showcase-copy">
-          <p className="eyebrow">SHOWCASE ENGINE V1 / SELF-AUTHORED HERO</p>
+          <p className="eyebrow">SHOWCASE ENGINE V1 / SELF-AUTHORED HERO V2</p>
           <h1>{manifest.title}</h1>
           <p className="lede">{manifest.subtitle}</p>
           <div className="proof-row" aria-label="Platform principles">

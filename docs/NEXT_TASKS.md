@@ -88,7 +88,8 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] upgrade physical material response with clearcoat paint, transmissive glass, cabin and brake detail
 - [x] add deterministic `TEXCOORD_0` UVs and authored embedded PNG maps for paint, metallic/roughness, interior and tire surfaces
 - [x] scale texture resolution and map set by LOD, with CI-enforced monotonic texture payload budgets
-- [ ] raise the hero from stylized concept quality to final art-directed / photoreal quality if the vertical requires it
+- [x] raise the primitive-heavy hero to an art-directed Hero V2 with authored loft silhouette and LOD-specific detail hierarchy
+- [ ] raise Hero V2 to final photoreal production art if the automotive vertical requires it
 - [x] promote authored texture maps to real BasisLZ KTX2 runtime GLBs with pinned encoder + CI validation
 - [x] validate KTX2/Basis decode and adaptive LOD delivery in production Chromium CI smoke
 - [ ] validate KTX2/Basis decode, GPU upload and timings on iOS Safari + representative Android devices

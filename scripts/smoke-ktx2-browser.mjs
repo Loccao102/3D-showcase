@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import process from "node:process";
 import { chromium } from "playwright";
@@ -10,6 +12,9 @@ const SERVER_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 30_000;
 const expectMeshopt = process.env.SHOWCASE_EXPECT_MESHOPT === "1";
 const meshoptSuffix = expectMeshopt ? "-meshopt" : "";
+const screenshotDir = process.env.SHOWCASE_SCREENSHOT_DIR
+  ? resolve(process.cwd(), process.env.SHOWCASE_SCREENSHOT_DIR)
+  : undefined;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -173,6 +178,15 @@ async function runSmokeCase(browser, {
       !statusText.toLowerCase().includes("error"),
       `${label}: stage reported an error: ${statusText}`,
     );
+
+    if (screenshotDir) {
+      await mkdir(screenshotDir, { recursive: true });
+      const fileName = `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.png`;
+      await page.screenshot({
+        path: resolve(screenshotDir, fileName),
+        fullPage: true,
+      });
+    }
 
     console.log(
       `✓ ${label} | model=${expectedModel} | basis=${requireBasisTranscoder ? "decoded" : "not-required"} | ready`,
