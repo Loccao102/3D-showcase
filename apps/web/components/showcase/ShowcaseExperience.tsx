@@ -128,7 +128,7 @@ const manifest: ShowcaseManifest = {
           id: "finish-graphite",
           label: "Graphite",
           bindings: [
-            { type: "material-color", target: "body", value: "#2b3038" },
+            { type: "material-color", target: "body", value: "#424c58" },
           ],
         },
         {
