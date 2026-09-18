@@ -1,5 +1,7 @@
 # Astra One — Self-authored Hero Asset V1
 
+> Superseded by `docs/HERO_ASSET_V2.md` for the current live hero geometry. This document remains as the V1 pipeline baseline.
+
 ## Purpose
 
 Astra One Hero V1 replaces the tiny cube-based reference fixture in the live automotive proof with a reproducible, self-authored GLB family. It exists to exercise the real showcase runtime with PBR materials, semantic nodes, responsive LOD selection, trim replacement and animation without introducing third-party asset licensing ambiguity.
