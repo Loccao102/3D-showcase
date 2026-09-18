@@ -152,6 +152,19 @@ for (const contract of contracts) {
     `${runtimeLabel}: ktxPayloadBytes marker does not match embedded payload`,
   );
 
+  if (contract.maxKtx2FileBytes !== undefined) {
+    assert(
+      runtimeBytes.length <= contract.maxKtx2FileBytes,
+      `${runtimeLabel}: ${runtimeBytes.length}B exceeds maxKtx2FileBytes ${contract.maxKtx2FileBytes}`,
+    );
+  }
+  if (contract.maxKtx2PayloadBytes !== undefined) {
+    assert(
+      ktxPayloadBytes <= contract.maxKtx2PayloadBytes,
+      `${runtimeLabel}: ${ktxPayloadBytes}B exceeds maxKtx2PayloadBytes ${contract.maxKtx2PayloadBytes}`,
+    );
+  }
+
   measurements.push({
     variant: contract.id.includes("sport") ? "sport" : "touring",
     lod,
