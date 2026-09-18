@@ -62,6 +62,43 @@ function assertRequiredNames(document, contract, filePath) {
   }
 }
 
+function findMaterial(document, name, filePath) {
+  const material = document.materials?.find((candidate) => candidate.name === name);
+  assert(material, `${filePath}: missing material '${name}'`);
+  return material;
+}
+
+function assertMaterialContracts(document, contract, filePath) {
+  for (const extension of contract.requiredExtensions ?? []) {
+    assert(
+      (document.extensionsUsed ?? []).includes(extension),
+      `${filePath}: required extension '${extension}' was lost during Meshopt promotion`,
+    );
+  }
+
+  for (const [materialName, extensions] of Object.entries(
+    contract.requiredMaterialExtensions ?? {},
+  )) {
+    const material = findMaterial(document, materialName, filePath);
+    for (const extension of extensions) {
+      assert(
+        material.extensions?.[extension],
+        `${filePath}: material '${materialName}' lost extension '${extension}'`,
+      );
+    }
+  }
+
+  for (const [materialName, alphaMode] of Object.entries(
+    contract.requiredAlphaMode ?? {},
+  )) {
+    const material = findMaterial(document, materialName, filePath);
+    assert(
+      material.alphaMode === alphaMode,
+      `${filePath}: material '${materialName}' expected alphaMode '${alphaMode}', got '${material.alphaMode ?? "OPAQUE"}'`,
+    );
+  }
+}
+
 function validateMeshoptBufferViews(document, binary, filePath) {
   let compressedViews = 0;
   let compressedBytes = 0;
@@ -136,12 +173,38 @@ for (const contract of contracts) {
   );
 
   assertRequiredNames(document, contract, outputFile);
+  assertMaterialContracts(document, contract, outputFile);
 
   const { compressedViews, compressedBytes } = validateMeshoptBufferViews(
     document,
     output.binary,
     outputFile,
   );
+
+  assert(
+    outputBytes.length < sourceBytes.length,
+    `${outputFile}: Meshopt runtime asset must be smaller than its source asset`,
+  );
+
+  if (contract.maxMeshoptFileBytes !== undefined) {
+    assert(
+      outputBytes.length <= contract.maxMeshoptFileBytes,
+      `${outputFile}: ${outputBytes.length}B exceeds maxMeshoptFileBytes ${contract.maxMeshoptFileBytes}`,
+    );
+  }
+  if (contract.maxMeshoptPayloadBytes !== undefined) {
+    assert(
+      compressedBytes <= contract.maxMeshoptPayloadBytes,
+      `${outputFile}: ${compressedBytes}B exceeds maxMeshoptPayloadBytes ${contract.maxMeshoptPayloadBytes}`,
+    );
+  }
+  if (contract.maxMeshoptRuntimeRatio !== undefined) {
+    const ratio = outputBytes.length / sourceBytes.length;
+    assert(
+      ratio <= contract.maxMeshoptRuntimeRatio,
+      `${outputFile}: runtime/source ratio ${ratio.toFixed(3)} exceeds ${contract.maxMeshoptRuntimeRatio}`,
+    );
+  }
 
   if (lod < 2) {
     assert(
