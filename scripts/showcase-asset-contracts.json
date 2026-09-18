@@ -57,14 +57,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 62464,
+      "maxFileBytes": 86016,
       "maxEmbeddedTextureBytes": 20480,
-      "maxTriangles": 420,
-      "maxKtx2FileBytes": 49152,
+      "maxTriangles": 540,
+      "maxKtx2FileBytes": 73728,
       "maxKtx2PayloadBytes": 6144,
-      "maxMeshoptFileBytes": 25088,
-      "maxMeshoptPayloadBytes": 4352,
-      "maxMeshoptRuntimeRatio": 0.54
+      "maxMeshoptFileBytes": 36864,
+      "maxMeshoptPayloadBytes": 8192,
+      "maxMeshoptRuntimeRatio": 0.62
     },
     {
       "id": "astra-touring-lod1",
@@ -123,14 +123,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 43008,
+      "maxFileBytes": 65536,
       "maxEmbeddedTextureBytes": 6144,
-      "maxTriangles": 320,
-      "maxKtx2FileBytes": 41984,
+      "maxTriangles": 420,
+      "maxKtx2FileBytes": 57344,
       "maxKtx2PayloadBytes": 4096,
-      "maxMeshoptFileBytes": 21120,
-      "maxMeshoptPayloadBytes": 3584,
-      "maxMeshoptRuntimeRatio": 0.54
+      "maxMeshoptFileBytes": 32768,
+      "maxMeshoptPayloadBytes": 6656,
+      "maxMeshoptRuntimeRatio": 0.65
     },
     {
       "id": "astra-touring-lod2",
@@ -181,14 +181,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 24576,
+      "maxFileBytes": 32768,
       "maxEmbeddedTextureBytes": 2048,
-      "maxTriangles": 220,
-      "maxKtx2FileBytes": 24576,
+      "maxTriangles": 280,
+      "maxKtx2FileBytes": 32768,
       "maxKtx2PayloadBytes": 2048,
-      "maxMeshoptFileBytes": 15104,
-      "maxMeshoptPayloadBytes": 2688,
-      "maxMeshoptRuntimeRatio": 0.67
+      "maxMeshoptFileBytes": 20480,
+      "maxMeshoptPayloadBytes": 4096,
+      "maxMeshoptRuntimeRatio": 0.74
     },
     {
       "id": "astra-sport-lod0",
@@ -250,14 +250,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 62464,
+      "maxFileBytes": 86016,
       "maxEmbeddedTextureBytes": 20480,
-      "maxTriangles": 460,
-      "maxKtx2FileBytes": 49152,
+      "maxTriangles": 560,
+      "maxKtx2FileBytes": 73728,
       "maxKtx2PayloadBytes": 6144,
-      "maxMeshoptFileBytes": 25408,
-      "maxMeshoptPayloadBytes": 4352,
-      "maxMeshoptRuntimeRatio": 0.54
+      "maxMeshoptFileBytes": 36864,
+      "maxMeshoptPayloadBytes": 8192,
+      "maxMeshoptRuntimeRatio": 0.62
     },
     {
       "id": "astra-sport-lod1",
@@ -318,14 +318,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 43008,
+      "maxFileBytes": 65536,
       "maxEmbeddedTextureBytes": 6144,
-      "maxTriangles": 360,
-      "maxKtx2FileBytes": 41984,
+      "maxTriangles": 440,
+      "maxKtx2FileBytes": 57344,
       "maxKtx2PayloadBytes": 4096,
-      "maxMeshoptFileBytes": 21376,
-      "maxMeshoptPayloadBytes": 3584,
-      "maxMeshoptRuntimeRatio": 0.54
+      "maxMeshoptFileBytes": 32768,
+      "maxMeshoptPayloadBytes": 6656,
+      "maxMeshoptRuntimeRatio": 0.65
     },
     {
       "id": "astra-sport-lod2",
@@ -378,14 +378,14 @@
       "requiredAlphaMode": {
         "glass": "BLEND"
       },
-      "maxFileBytes": 24576,
+      "maxFileBytes": 32768,
       "maxEmbeddedTextureBytes": 2048,
-      "maxTriangles": 260,
-      "maxKtx2FileBytes": 24576,
+      "maxTriangles": 300,
+      "maxKtx2FileBytes": 32768,
       "maxKtx2PayloadBytes": 2048,
-      "maxMeshoptFileBytes": 15360,
-      "maxMeshoptPayloadBytes": 2688,
-      "maxMeshoptRuntimeRatio": 0.67
+      "maxMeshoptFileBytes": 20480,
+      "maxMeshoptPayloadBytes": 4096,
+      "maxMeshoptRuntimeRatio": 0.74
     }
   ]
 }
