@@ -8,7 +8,9 @@
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "generate:assets": "node scripts/generate-astra-concept.mjs && node scripts/texture-astra-concept.mjs",
+    "generate:assets:ktx2": "pnpm generate:assets && node scripts/promote-ktx2.mjs",
     "validate:assets": "pnpm generate:assets && node scripts/validate-showcase-assets.mjs && node scripts/validate-lod-budgets.mjs && node scripts/validate-material-contracts.mjs && node scripts/validate-textured-assets.mjs",
+    "validate:assets:production": "pnpm validate:assets && node scripts/promote-ktx2.mjs && node scripts/validate-ktx2-assets.mjs",
     "lint": "pnpm -r --if-present lint"
   }
 }
