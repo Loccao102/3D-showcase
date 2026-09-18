@@ -62,6 +62,8 @@ for (const variant of ["touring", "sport"]) {
         "-kn",
         "-km",
         "-ke",
+        "-af",
+        "0",
       ],
       `meshopt ${sourceName}`,
     );
