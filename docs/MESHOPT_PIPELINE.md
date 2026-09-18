@@ -23,7 +23,7 @@ Meshopt is applied after the texture-delivery decision:
 `scripts/promote-meshopt.mjs` writes sibling `*-meshopt.glb` files with:
 
 ```text
-gltfpack -cc -noq -kn -km -ke
+gltfpack -cc -noq -kn -km -ke -af 0
 ```
 
 The flags deliberately:
@@ -32,7 +32,8 @@ The flags deliberately:
 - keep named nodes and meshes used by semantic bindings;
 - keep named materials;
 - preserve extras;
-- disable geometry quantization so V7 measures Meshopt compression independently instead of mixing two optimization experiments.
+- disable geometry quantization so V7 measures Meshopt compression independently instead of mixing two optimization experiments;
+- disable animation resampling so authored clip timing is preserved.
 
 ## Measured V7 runtime bytes
 
@@ -40,15 +41,15 @@ Pinned Linux x86_64 CI produced:
 
 | Tier | Touring source | Touring Meshopt | Savings | Sport source | Sport Meshopt | Savings |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| LOD0 | 48,184 B | 24,832 B | 48.5% | 48,448 B | 25,180 B | 48.0% |
-| LOD1 | 40,112 B | 20,860 B | 48.0% | 40,284 B | 21,092 B | 47.6% |
-| LOD2 | 22,760 B | 14,908 B | 34.5% | 22,932 B | 15,136 B | 34.0% |
+| LOD0 | 48,184 B | 24,660 B | 48.8% | 48,448 B | 25,008 B | 48.4% |
+| LOD1 | 40,112 B | 20,688 B | 48.4% | 40,284 B | 20,920 B | 48.1% |
+| LOD2 | 22,760 B | 14,736 B | 35.3% | 22,932 B | 14,964 B | 34.7% |
 
 Compressed Meshopt payloads measure:
 
-- LOD0: 4,330 B;
-- LOD1: 3,515 B;
-- LOD2: 2,659 B.
+- LOD0: 4,166 B;
+- LOD1: 3,351 B;
+- LOD2: 2,495 B.
 
 Because every tier is materially smaller, the production runtime profile enables Meshopt on LOD0, LOD1 and LOD2.
 
@@ -56,9 +57,9 @@ Because every tier is materially smaller, the production runtime profile enables
 
 The asset contract locks ceilings near the measured values:
 
-- Touring LOD0: 25,600 B; Sport LOD0: 25,856 B; Meshopt payload <= 4,608 B; runtime/source ratio <= 0.55.
-- Touring LOD1: 21,504 B; Sport LOD1: 21,760 B; Meshopt payload <= 3,840 B; runtime/source ratio <= 0.56.
-- Touring LOD2: 15,360 B; Sport LOD2: 15,616 B; Meshopt payload <= 2,816 B; runtime/source ratio <= 0.68.
+- Touring LOD0: 25,088 B; Sport LOD0: 25,408 B; Meshopt payload <= 4,352 B; runtime/source ratio <= 0.54.
+- Touring LOD1: 21,120 B; Sport LOD1: 21,376 B; Meshopt payload <= 3,584 B; runtime/source ratio <= 0.54.
+- Touring LOD2: 15,104 B; Sport LOD2: 15,360 B; Meshopt payload <= 2,688 B; runtime/source ratio <= 0.67.
 
 The validator also requires:
 
