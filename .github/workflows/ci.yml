@@ -44,22 +44,36 @@ jobs:
           sudo apt-get install -y "$RUNNER_TEMP/ktx-software.deb"
           ktx --version
 
+      - name: Install Meshopt encoder
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/zeux/meshoptimizer/releases/download/v1.2/gltfpack-ubuntu.zip \
+            --output "$RUNNER_TEMP/gltfpack.zip"
+          echo "ebc236f5f6c08c7e5c5750476a187d24805d44d8c680449c4b7369c333f817b1  $RUNNER_TEMP/gltfpack.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/gltfpack.zip" -d "$RUNNER_TEMP/gltfpack"
+          GLTFPACK_BIN="$(find "$RUNNER_TEMP/gltfpack" -type f -name gltfpack | head -n 1)"
+          test -n "$GLTFPACK_BIN"
+          sudo install -m 0755 "$GLTFPACK_BIN" /usr/local/bin/gltfpack
+          gltfpack -h >/dev/null
+
       - name: Validate showcase assets
         run: pnpm validate:assets:production
 
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build web with KTX2 runtime assets
+      - name: Build web with KTX2 + Meshopt runtime assets
         env:
           NEXT_PUBLIC_SHOWCASE_ASSET_ENCODING: ktx2
+          NEXT_PUBLIC_SHOWCASE_MESHOPT: "1"
         run: pnpm --filter @showcase/web build
 
-      - name: Browser smoke test KTX2 delivery
+      - name: Browser smoke test KTX2 + Meshopt delivery
         timeout-minutes: 3
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chrome
-        run: pnpm smoke:browser:ktx2
+          SHOWCASE_EXPECT_MESHOPT: "1"
+        run: pnpm smoke:browser:runtime
 
   api:
     runs-on: ubuntu-latest
