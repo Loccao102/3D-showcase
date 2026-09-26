@@ -194,13 +194,13 @@ Foundation                        ✓
    ↓
 Showcase Engine V1 core           ✓
    ↓
-Production asset/device hardening ← current
+Production asset/device hardening ✓
    ↓
-Automotive Vertical V1
+Automotive Vertical V1            ✓
    ↓
-Content / Admin pipeline
+Content / Admin pipeline          ✓
    ↓
-Optional Commerce
+Optional Commerce                 ← current (ready for downstream integration)
    ↓
 Second Vertical Proof
    ↓
@@ -213,13 +213,15 @@ See `docs/ROADMAP.md` and `docs/NEXT_TASKS.md`.
 
 ## Core documentation
 
-- `docs/ARCHITECTURE.md`
-- `docs/SHOWCASE_CONTRACT.md`
-- `docs/DEVICE_STRATEGY.md`
-- `docs/EXPERIENCE_SPEC.md`
-- `docs/ASSET_PIPELINE.md`
-- `docs/DESIGN_RESEARCH.md`
-- `docs/VISUAL_DIRECTION.md`
-- `docs/MOTION_TYPOGRAPHY.md`
-- `docs/ROADMAP.md`
-- `docs/NEXT_TASKS.md`
+- [ARCHITECTURE.md](file:///c:/Users/Admin/3D-showcase-1/docs/ARCHITECTURE.md)
+- [SHOWCASE_CONTRACT.md](file:///c:/Users/Admin/3D-showcase-1/docs/SHOWCASE_CONTRACT.md)
+- [DEVICE_STRATEGY.md](file:///c:/Users/Admin/3D-showcase-1/docs/DEVICE_STRATEGY.md)
+- [EXPERIENCE_SPEC.md](file:///c:/Users/Admin/3D-showcase-1/docs/EXPERIENCE_SPEC.md)
+- [ASSET_PIPELINE.md](file:///c:/Users/Admin/3D-showcase-1/docs/ASSET_PIPELINE.md)
+- [DESIGN_RESEARCH.md](file:///c:/Users/Admin/3D-showcase-1/docs/DESIGN_RESEARCH.md)
+- [VISUAL_DIRECTION.md](file:///c:/Users/Admin/3D-showcase-1/docs/VISUAL_DIRECTION.md)
+- [MOTION_TYPOGRAPHY.md](file:///c:/Users/Admin/3D-showcase-1/docs/MOTION_TYPOGRAPHY.md)
+- [PROCEDURAL_STUDIO_V9.md](file:///c:/Users/Admin/3D-showcase-1/docs/PROCEDURAL_STUDIO_V9.md)
+- [ACCESSIBILITY_AUDIT.md](file:///c:/Users/Admin/3D-showcase-1/docs/ACCESSIBILITY_AUDIT.md)
+- [ROADMAP.md](file:///c:/Users/Admin/3D-showcase-1/docs/ROADMAP.md)
+- [NEXT_TASKS.md](file:///c:/Users/Admin/3D-showcase-1/docs/NEXT_TASKS.md)

@@ -79,11 +79,14 @@ function mapEnvironmentPreset(
 function ProceduralStudioEnvironment({
   intensity,
   quality,
+  preset = "studio",
 }: {
   intensity: number;
   quality: RenderQuality;
+  preset?: string;
 }) {
   const resolution = quality === "high" ? 256 : 128;
+  const isNight = preset === "night";
 
   return (
     <Environment
@@ -93,31 +96,31 @@ function ProceduralStudioEnvironment({
     >
       <Lightformer
         form="rect"
-        intensity={4.8}
-        color="#f6f9ff"
+        intensity={isNight ? 2.4 : 4.8}
+        color={isNight ? "#38527a" : "#f6f9ff"}
         position={[0, 5.5, -4.5]}
         rotation={[Math.PI / 2.6, 0, 0]}
         scale={[8, 3.2, 1]}
       />
       <Lightformer
         form="rect"
-        intensity={3.2}
-        color="#dceaff"
+        intensity={isNight ? 4.2 : 3.2}
+        color={isNight ? "#0ea5e9" : "#dceaff"}
         position={[5.5, 2.4, 1.2]}
         rotation={[0, -Math.PI / 2, 0]}
         scale={[5.5, 2.2, 1]}
       />
       <Lightformer
         form="rect"
-        intensity={2.6}
-        color="#b9d8ff"
+        intensity={isNight ? 3.6 : 2.6}
+        color={isNight ? "#ec4899" : "#b9d8ff"}
         position={[-5.5, 2.1, -1.8]}
         rotation={[0, Math.PI / 2, 0]}
         scale={[4.5, 2, 1]}
       />
       <Lightformer
         form="ring"
-        intensity={2.4}
+        intensity={isNight ? 1.8 : 2.4}
         color="#ffffff"
         position={[0, 1.4, 5.5]}
         rotation={[0, Math.PI, 0]}
@@ -393,22 +396,25 @@ export function ShowcaseCanvas({
           }}
         />
         <Suspense fallback={null}>
-          <ambientLight intensity={0.42} />
+          <ambientLight intensity={manifest.scene.environment?.preset === "night" ? 0.28 : 0.42} />
           <directionalLight
             castShadow={effectivePolicy.enableShadows}
-            intensity={2.6}
+            intensity={manifest.scene.environment?.preset === "night" ? 1.8 : 2.6}
             position={[5, 8, 4]}
           />
           <directionalLight
-            intensity={0.85}
+            intensity={manifest.scene.environment?.preset === "night" ? 1.2 : 0.85}
+            color={manifest.scene.environment?.preset === "night" ? "#38bdf8" : "#ffffff"}
             position={[-4, 3.5, -5]}
           />
           {!manifest.scene.environment?.preset ||
           manifest.scene.environment.preset === "studio" ||
-          manifest.scene.environment.preset === "neutral" ? (
+          manifest.scene.environment.preset === "neutral" ||
+          manifest.scene.environment.preset === "night" ? (
             <ProceduralStudioEnvironment
               intensity={manifest.scene.environment?.intensity ?? 0.85}
               quality={effectivePolicy.quality}
+              preset={manifest.scene.environment?.preset ?? "studio"}
             />
           ) : (
             <Environment

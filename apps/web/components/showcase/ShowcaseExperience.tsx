@@ -232,6 +232,24 @@ const manifest: ShowcaseManifest = {
         },
       ],
     },
+    {
+      id: "atmosphere",
+      label: "Atmosphere",
+      selection: "single",
+      defaultOptionIds: ["atmosphere-studio"],
+      options: [
+        {
+          id: "atmosphere-studio",
+          label: "Studio Day",
+          bindings: [],
+        },
+        {
+          id: "atmosphere-night",
+          label: "Night Gallery",
+          bindings: [],
+        },
+      ],
+    },
   ],
   hotspots: [
     {
@@ -332,6 +350,31 @@ const hotspotCopy: Record<string, { title: string; body: string }> = {
   },
 };
 
+interface VehicleSpecs {
+  acceleration: string;
+  range: string;
+  topSpeed: string;
+  power: string;
+  drivetrain: string;
+}
+
+const vehicleSpecifications: Record<"touring" | "sport", VehicleSpecs> = {
+  touring: {
+    acceleration: "3.8s",
+    range: "620 km",
+    topSpeed: "250 km/h",
+    power: "380 kW / 510 hp",
+    drivetrain: "Dual Motor AWD",
+  },
+  sport: {
+    acceleration: "2.9s",
+    range: "560 km",
+    topSpeed: "285 km/h",
+    power: "485 kW / 650 hp",
+    drivetrain: "Torque-Vectoring AWD",
+  },
+};
+
 const initialPolicy: RenderPolicy = {
   quality: "medium",
   maxDpr: 1.5,
@@ -399,40 +442,89 @@ export function ShowcaseExperience({
     };
   }, []);
 
+  const [copyAnnouncement, setCopyAnnouncement] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Restore configuration from URL query params on initial mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl: Record<string, string[]> = {};
+    for (const group of manifest.optionGroups) {
+      const val = params.get(group.id);
+      if (val && group.options.some((opt) => opt.id === val)) {
+        fromUrl[group.id] = [val];
+      }
+    }
+    if (Object.keys(fromUrl).length > 0) {
+      setSelection((prev) => ({ ...prev, ...fromUrl }));
+    }
+  }, []);
+
+  // Sync selection changes to URL query state
+  useEffect(() => {
+    if (typeof window === "undefined" || !userHasInteracted) return;
+    const params = new URLSearchParams();
+    for (const [groupId, optionIds] of Object.entries(selection)) {
+      if (optionIds[0]) {
+        params.set(groupId, optionIds[0]);
+      }
+    }
+    const newSearch = params.toString();
+    const newUrl = newSearch
+      ? `${window.location.pathname}?${newSearch}`
+      : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [selection, userHasInteracted]);
+
+  const effectiveManifest = useMemo<ShowcaseManifest>(() => {
+    const isNight = selection.atmosphere?.includes("atmosphere-night");
+    return {
+      ...manifest,
+      scene: {
+        ...manifest.scene,
+        environment: {
+          ...manifest.scene.environment,
+          preset: isNight ? "night" : "studio",
+        },
+      },
+    };
+  }, [selection.atmosphere]);
+
   const resolvedBindings = useMemo(
-    () => resolveSelectionBindings(manifest, selection),
-    [selection],
+    () => resolveSelectionBindings(effectiveManifest, selection),
+    [effectiveManifest, selection],
   );
   const bindings = useMemo(
     () => resolvedBindings.map((resolved) => resolved.binding),
     [resolvedBindings],
   );
   const snapshot = useMemo(
-    () => createSelectionSnapshot(manifest, selection),
-    [selection],
+    () => createSelectionSnapshot(effectiveManifest, selection),
+    [effectiveManifest, selection],
   );
 
   useEffect(() => {
     onSelectionSnapshot?.(snapshot);
   }, [onSelectionSnapshot, snapshot]);
 
-  const activeHotspot = manifest.hotspots.find(
+  const activeHotspot = effectiveManifest.hotspots.find(
     (candidate) => candidate.id === activeHotspotId,
   );
   const activeHotspotContent = activeHotspot?.contentKey
     ? hotspotCopy[activeHotspot.contentKey]
     : undefined;
-  const fallbackImage = manifest.scene.assets.find((asset) => asset.default)
+  const fallbackImage = effectiveManifest.scene.assets.find((asset) => asset.default)
     ?.fallbackImage;
 
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
     setActiveHotspotId(hotspot.id);
     setActiveCameraPresetId(
-      hotspot.cameraPresetId ?? manifest.scene.defaultCameraPresetId,
+      hotspot.cameraPresetId ?? effectiveManifest.scene.defaultCameraPresetId,
     );
     setMode("detail");
     setCameraRequestKey((current) => current + 1);
-  }, []);
+  }, [effectiveManifest.scene.defaultCameraPresetId]);
 
   const handleDirectInteraction = useCallback(() => {
     setUserHasInteracted(true);
@@ -452,10 +544,10 @@ export function ShowcaseExperience({
 
   const resetCamera = useCallback(() => {
     setActiveHotspotId(undefined);
-    setActiveCameraPresetId(manifest.scene.defaultCameraPresetId);
+    setActiveCameraPresetId(effectiveManifest.scene.defaultCameraPresetId);
     setMode("explore");
     setCameraRequestKey((current) => current + 1);
-  }, []);
+  }, [effectiveManifest.scene.defaultCameraPresetId]);
 
   const copySnapshot = useCallback(async () => {
     if (!navigator.clipboard) {
@@ -463,10 +555,37 @@ export function ShowcaseExperience({
     }
 
     await navigator.clipboard.writeText(JSON.stringify(snapshot));
+    setToastMessage("Selection snapshot JSON copied");
+    setCopyAnnouncement("Selection snapshot JSON copied to clipboard");
+    setTimeout(() => {
+      setToastMessage(null);
+      setCopyAnnouncement(null);
+    }, 2800);
   }, [snapshot]);
+
+  const copyShareLink = useCallback(async () => {
+    if (!navigator.clipboard) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(window.location.href);
+    setToastMessage("Configuration link copied to clipboard");
+    setCopyAnnouncement("Configuration link copied to clipboard");
+    setTimeout(() => {
+      setToastMessage(null);
+      setCopyAnnouncement(null);
+    }, 2800);
+  }, []);
+
+  const activeTrim = selection.trim?.includes("trim-sport") ? "sport" : "touring";
+  const currentSpecs = vehicleSpecifications[activeTrim];
 
   return (
     <main className="experience-shell">
+      <a className="skip-link" href="#showcase-configuration">
+        Skip to configuration
+      </a>
+
       <header className="site-header">
         <a className="brand" href="#top" aria-label="3D Showcase home">
           <span className="brand-mark" aria-hidden="true" />
@@ -480,17 +599,52 @@ export function ShowcaseExperience({
 
       <section className="showcase-layout" id="top">
         <div className="showcase-copy">
-          <p className="eyebrow">SHOWCASE ENGINE V1 / SELF-AUTHORED HERO V2</p>
-          <h1>{manifest.title}</h1>
-          <p className="lede">{manifest.subtitle}</p>
+          <p className="eyebrow">SHOWCASE ENGINE V1 / AUTOMOTIVE VERTICAL V1</p>
+          <h1 id="showcase-title">{effectiveManifest.title}</h1>
+          <p className="lede">{effectiveManifest.subtitle}</p>
           <div className="proof-row" aria-label="Platform principles">
             <span>Responsive GLB LOD</span>
             <span>Semantic animation</span>
             <span>Commerce optional</span>
           </div>
+
+          <section className="specs-panel" aria-label="Vehicle technical specifications">
+            <div className="specs-header">
+              <span className="specs-title">Astra One Specs</span>
+              <span className="specs-variant-badge">{activeTrim.toUpperCase()}</span>
+            </div>
+            <div className="specs-grid">
+              <div className="spec-cell">
+                <span className="spec-metric">{currentSpecs.acceleration}</span>
+                <span className="spec-caption">0–100 km/h</span>
+              </div>
+              <div className="spec-cell">
+                <span className="spec-metric">{currentSpecs.range}</span>
+                <span className="spec-caption">WLTP Range</span>
+              </div>
+              <div className="spec-cell">
+                <span className="spec-metric">{currentSpecs.power}</span>
+                <span className="spec-caption">Peak Power</span>
+              </div>
+              <div className="spec-cell">
+                <span className="spec-metric">{currentSpecs.topSpeed}</span>
+                <span className="spec-caption">Top Speed</span>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div className="stage-frame" aria-label="Interactive 3D product showcase">
+        <div
+          className="stage-frame"
+          aria-label="Interactive 3D product showcase"
+          aria-labelledby="showcase-title"
+          aria-describedby="showcase-stage-description"
+        >
+          <p id="showcase-stage-description" className="sr-only">
+            Interactive 3D preview. Use the labeled hotspot buttons for guided details
+            or skip to the product configuration controls to customize finish, trim and atmosphere.
+          </p>
+
           {fallbackImage ? (
             <div
               className="showcase-poster"
@@ -501,7 +655,7 @@ export function ShowcaseExperience({
           ) : null}
 
           <ShowcaseViewport
-            manifest={manifest}
+            manifest={effectiveManifest}
             renderPolicy={renderPolicy}
             bindings={bindings}
             viewportWidth={viewportWidth}
@@ -513,7 +667,12 @@ export function ShowcaseExperience({
             onAssetRuntimeEvent={handleAssetRuntimeEvent}
           />
 
-          <div className="stage-status" data-status={assetStatus} role="status">
+          <div
+            className="stage-status"
+            data-status={assetStatus}
+            role="status"
+            aria-live="polite"
+          >
             <span>{assetStatus === "ready" ? mode : assetStatus}</span>
             {assetError ? <span>{assetError}</span> : null}
           </div>
@@ -521,7 +680,7 @@ export function ShowcaseExperience({
           {activeHotspotContent ? (
             <div className="stage-detail-card" role="dialog" aria-live="polite">
               <p className="panel-kicker">Guided detail</p>
-              <strong>{activeHotspotContent.title}</strong>
+              <h2 className="stage-detail-title">{activeHotspotContent.title}</h2>
               <p>{activeHotspotContent.body}</p>
               <button type="button" onClick={resetCamera}>
                 Return to free explore
@@ -529,7 +688,7 @@ export function ShowcaseExperience({
             </div>
           ) : null}
 
-          <div className="stage-corner stage-corner-left">
+          <div className="stage-corner stage-corner-left" aria-hidden="true">
             Drag to orbit<br />Scroll to inspect
           </div>
           <div className="stage-corner stage-corner-right" aria-hidden="true">
@@ -537,77 +696,117 @@ export function ShowcaseExperience({
           </div>
         </div>
 
-        <aside className="config-panel" aria-label="Product configuration">
+        <aside
+          id="showcase-configuration"
+          className="config-panel"
+          aria-labelledby="showcase-config-title"
+          tabIndex={-1}
+        >
           <div className="config-heading">
             <div>
               <p className="panel-kicker">Configuration</p>
-              <h2>Scene bindings</h2>
+              <h2 id="showcase-config-title">Scene bindings</h2>
             </div>
-            <span>{snapshot.optionIds.length} active</span>
+            <span aria-label={`${snapshot.optionIds.length} active options`}>
+              {snapshot.optionIds.length} active
+            </span>
           </div>
 
           <div className="config-groups">
-            {manifest.optionGroups.map((group) => (
-              <section className="config-group" key={group.id}>
-                <div className="config-group-heading">
-                  <span>{group.label}</span>
-                  <span>{group.selection}</span>
-                </div>
-                <div className="finish-options" role="group" aria-label={group.label}>
-                  {group.options.map((option) => {
-                    const colorBinding = option.bindings.find(
-                      (binding) => binding.type === "material-color",
-                    );
-                    const swatch =
-                      colorBinding?.type === "material-color"
-                        ? colorBinding.value
-                        : undefined;
-                    const active = selection[group.id]?.includes(option.id) ?? false;
+            {effectiveManifest.optionGroups.map((group) => {
+              const groupHeadingId = `config-group-${group.id}`;
 
-                    return (
-                      <button
-                        className="finish-option"
-                        data-active={active}
-                        key={option.id}
-                        onClick={() => {
-                          setMode("configure");
-                          setSelection((current) =>
-                            selectOption(manifest, current, group.id, option.id),
-                          );
-                        }}
-                        aria-pressed={active}
-                        type="button"
-                      >
-                        {swatch ? (
-                          <span
-                            className="finish-swatch"
-                            style={{ background: swatch }}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <span className="binding-icon" aria-hidden="true">
-                            {group.id === "trim" ? "↔" : group.id === "motion" ? "▶" : "◉"}
-                          </span>
-                        )}
-                        <span>{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+              return (
+                <section
+                  className="config-group"
+                  key={group.id}
+                  aria-labelledby={groupHeadingId}
+                >
+                  <div className="config-group-heading">
+                    <h3 id={groupHeadingId}>{group.label}</h3>
+                    <span aria-hidden="true">{group.selection}</span>
+                  </div>
+                  <div className="finish-options" role="group" aria-labelledby={groupHeadingId}>
+                    {group.options.map((option) => {
+                      const colorBinding = option.bindings.find(
+                        (binding) => binding.type === "material-color",
+                      );
+                      const swatch =
+                        colorBinding?.type === "material-color"
+                          ? colorBinding.value
+                          : undefined;
+                      const active = selection[group.id]?.includes(option.id) ?? false;
+
+                      return (
+                        <button
+                          className="finish-option"
+                          data-active={active}
+                          key={option.id}
+                          onClick={() => {
+                            setUserHasInteracted(true);
+                            setMode("configure");
+                            setSelection((current) =>
+                              selectOption(effectiveManifest, current, group.id, option.id),
+                            );
+                          }}
+                          aria-pressed={active}
+                          type="button"
+                        >
+                          {swatch ? (
+                            <span
+                              className="finish-swatch"
+                              style={{ background: swatch }}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <span className="binding-icon" aria-hidden="true">
+                              {group.id === "trim"
+                                ? "↔"
+                                : group.id === "motion"
+                                  ? "▶"
+                                  : group.id === "atmosphere"
+                                    ? "☀"
+                                    : "◉"}
+                            </span>
+                          )}
+                          <span>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
           </div>
 
-          <div className="panel-divider" />
+          <div className="panel-divider" aria-hidden="true" />
 
           <div className="selection-snapshot">
             <div>
               <span>Selection snapshot</span>
               <code>{snapshot.optionIds.join(" · ")}</code>
             </div>
-            <button type="button" onClick={copySnapshot}>
-              Copy JSON
-            </button>
+            <div className="selection-actions">
+              <button
+                type="button"
+                onClick={copyShareLink}
+                aria-label="Copy shareable configuration link"
+              >
+                Share Link
+              </button>
+              <button
+                type="button"
+                onClick={copySnapshot}
+                aria-label="Copy JSON selection snapshot"
+              >
+                Copy JSON
+              </button>
+            </div>
+            {copyAnnouncement ? (
+              <span className="sr-only" role="status" aria-live="polite">
+                {copyAnnouncement}
+              </span>
+            ) : null}
           </div>
 
           <div className="architecture-note">
@@ -620,6 +819,13 @@ export function ShowcaseExperience({
           </div>
         </aside>
       </section>
+
+      {toastMessage ? (
+        <div className="share-toast" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      ) : null}
 
       <footer className="site-footer">
         <span>SHOWCASE ENGINE / NEXT.JS + THREE.JS</span>

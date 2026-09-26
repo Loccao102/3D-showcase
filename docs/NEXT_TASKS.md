@@ -118,7 +118,7 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [x] generic spatial asset replacement entrance with reduced-motion fallback
 - [x] high-tier ambient drift implemented as CSS-only presentation so `frameloop="demand"` stays idle
 - [x] keyboard focus-visible and increased/forced-contrast fallbacks
-- [ ] manual accessibility audit for screen-reader announcements, keyboard order and measured contrast
+- [x] manual accessibility audit for screen-reader announcements, keyboard order and measured contrast
 
 ## Explicitly deferred
 

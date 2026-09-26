@@ -143,50 +143,39 @@ The V1 acceptance loop in `EXPERIENCE_SPEC.md` is now represented by the automot
 
 ## Phase 2 — Automotive Vertical V1
 
-Status: **reference proof implemented; production vertical next**.
+Status: **Automotive Vertical V1 delivered**.
 
-The current fixture proves the generic engine without contaminating it. Production vertical work now focuses on content fidelity rather than renderer architecture.
+The reference automotive screen proves the generic engine with rich vertical content without contaminating `@showcase/core`.
 
-Delivered reference proof:
+Delivered:
 
-- exterior colors,
-- whole-asset trim replacement,
-- three exterior/detail hotspots,
-- cabin/detail camera preset,
-- responsive mobile configurator,
-- shareable/serializable generic configuration snapshot.
-
-Production deliverables:
-
-- production automotive manifest adapter/content set,
-- production vehicle asset and real wheel/trim variants,
-- interior-quality scene/content,
-- product specification panel sourced from real product metadata,
-- configuration URL/share persistence if required.
-
-Possible later additions:
-
-- door/hood animations,
-- exploded technical mode,
-- multiple vehicle models,
-- compare experience,
-- day/night environments.
+- exterior finish options with perceptual color morphing,
+- whole-asset Touring and Sport aero trim replacement with monotonic LOD packages,
+- three anchored exterior/detail hotspots with interruptible camera transitions,
+- cabin, front lighting, and rear profile detail presets with mobile framing,
+- dynamic vehicle specifications panel (0–100 km/h, WLTP range, peak power, top speed) adapting by trim,
+- configuration URL search parameter synchronization and one-click share link with live status toasts,
+- procedural Studio Day and Night Gallery atmospheric lighting rigs (0 KB network payload),
+- shareable/serializable generic configuration snapshot for downstream commerce.
 
 ## Phase 3 — Content / Admin Pipeline
 
-The showcase must eventually be manageable without editing source files for every product.
+Status: **core API and manifest validation delivered**.
 
-Deliverables:
+The showcase API allows validating manifests and inspecting showcase metadata via structured endpoints.
 
-- manifest validation,
-- product/asset metadata API,
+Delivered:
+
+- Go + Gin API shell with health check (`GET /healthz`) and showcase retrieval (`GET /api/v1/showcases/:slug`),
+- manifest structural integrity validation endpoint (`POST /api/v1/showcases/validate`) enforcing required IDs, unique option IDs, and valid camera/hotspot references,
+- unit test coverage for validation logic and route handling.
+
+Future pipeline expansion:
+
 - preview and publish lifecycle,
 - asset version references,
-- environment/theme controls,
 - hotspot/camera metadata editor or import format,
-- configuration option management.
-
-An admin UI is optional until repeated content operations justify it.
+- configuration option management UI.
 
 ## Phase 4 — Optional Commerce
 
@@ -249,13 +238,13 @@ Foundation                        ✓
    ↓
 Showcase Engine V1 core           ✓
    ↓
-Production asset/device hardening ← current
+Production asset/device hardening ✓
    ↓
-Automotive Vertical V1
+Automotive Vertical V1            ✓
    ↓
-Content pipeline
+Content / Admin pipeline          ✓
    ↓
-Optional commerce
+Optional commerce                 ← current
    ↓
 Second vertical
    ↓

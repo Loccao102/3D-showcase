@@ -32,5 +32,24 @@ func NewRouter(repository showcase.Repository) *gin.Engine {
 		c.JSON(http.StatusOK, manifest)
 	})
 
+	v1.POST("/showcases/validate", func(c *gin.Context) {
+		var manifest showcase.Manifest
+		if err := c.ShouldBindJSON(&manifest); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_json_body", "details": err.Error()})
+			return
+		}
+
+		errs := showcase.ValidateManifest(manifest)
+		if len(errs) > 0 {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"valid":  false,
+				"errors": errs,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"valid": true})
+	})
+
 	return router
 }
