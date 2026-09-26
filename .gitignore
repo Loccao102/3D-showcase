@@ -9,3 +9,8 @@ coverage/
 .DS_Store
 *.log
 apps/api/bin/
+*.tsbuildinfo
+apps/web/public/basis/
+apps/web/public/models/*.glb
+pnpm-lock.yaml
+

@@ -92,8 +92,21 @@ async function runSmokeCase(browser, {
   const page = await context.newPage();
   const responses = [];
   const requestFailures = [];
+  const externalHdrRequests = [];
   const pageErrors = [];
   const consoleErrors = [];
+
+  page.on("request", (request) => {
+    const url = request.url();
+    if (
+      url.includes(".hdr") ||
+      url.includes(".exr") ||
+      url.includes("raw.githubusercontent.com") ||
+      url.includes("jsdelivr.net/gh/pmndrs")
+    ) {
+      externalHdrRequests.push(url);
+    }
+  });
 
   page.on("response", (response) => {
     if (relevantUrl(response.url())) {
@@ -168,6 +181,11 @@ async function runSmokeCase(browser, {
     }
 
     assert(
+      externalHdrRequests.length === 0,
+      `${label}: unbudgeted external HDR/environment network requests detected: ${externalHdrRequests.join(", ")}`,
+    );
+
+    assert(
       requestFailures.length === 0,
       `${label}: model/Basis request failures: ${requestFailures.join(" | ")}`,
     );
@@ -189,7 +207,7 @@ async function runSmokeCase(browser, {
     }
 
     console.log(
-      `✓ ${label} | model=${expectedModel} | basis=${requireBasisTranscoder ? "decoded" : "not-required"} | ready`,
+      `✓ ${label} | model=${expectedModel} | basis=${requireBasisTranscoder ? "decoded" : "not-required"} | environment=procedural(0KB) | ready`,
     );
 
     if (consoleErrors.length > 0) {
@@ -214,6 +232,7 @@ const server = spawn(
     },
     stdio: ["ignore", "pipe", "pipe"],
     detached: process.platform !== "win32",
+    shell: process.platform === "win32",
   },
 );
 

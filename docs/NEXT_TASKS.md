@@ -108,7 +108,7 @@ The runtime plumbing, structural CI gate and first reproducible hero family are 
 - [ ] profile a representative mid-range Android device
 - [ ] profile iOS Safari
 - [ ] profile tablet landscape/portrait
-- [ ] verify production HDR/environment assets have mobile budgets
+- [x] verify production HDR/environment assets have mobile budgets
 
 ## Visual/motion polish — next
 
