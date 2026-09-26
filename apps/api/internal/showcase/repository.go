@@ -1,14 +1,20 @@
 package showcase
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 var ErrNotFound = errors.New("showcase not found")
 
 type Repository interface {
 	FindBySlug(slug string) (Manifest, error)
+	List() []Manifest
+	Save(manifest Manifest) error
 }
 
 type MemoryRepository struct {
+	mu    sync.RWMutex
 	items map[string]Manifest
 }
 
@@ -108,10 +114,33 @@ func NewMemoryRepository() *MemoryRepository {
 }
 
 func (r *MemoryRepository) FindBySlug(slug string) (Manifest, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	manifest, ok := r.items[slug]
 	if !ok {
 		return Manifest{}, ErrNotFound
 	}
 
 	return manifest, nil
+}
+
+func (r *MemoryRepository) List() []Manifest {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	result := make([]Manifest, 0, len(r.items))
+	for _, item := range r.items {
+		result = append(result, item)
+	}
+
+	return result
+}
+
+func (r *MemoryRepository) Save(manifest Manifest) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.items[manifest.Slug] = manifest
+	return nil
 }

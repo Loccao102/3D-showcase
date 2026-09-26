@@ -468,8 +468,17 @@ export function FurnitureExperience() {
               Astra One (Auto)
             </Link>
             <span className="vertical-switch-btn" data-active="true" aria-current="page">
-              Kroma Chair (Furniture)
+              Kroma Chair
             </span>
+            <Link href="/admin/editor" className="vertical-switch-btn">
+              3D Studio
+            </Link>
+            <Link href="/benchmark" className="vertical-switch-btn">
+              Benchmark
+            </Link>
+            <Link href="/embed?slug=furniture-kroma-chair-01" className="vertical-switch-btn">
+              Embed
+            </Link>
           </nav>
         </div>
 

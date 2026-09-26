@@ -76,6 +76,30 @@ The automotive screen is a proof vertical, not part of the engine API.
 - [x] second vertical proof: Kroma Ergonomic Lounge Chair (`/furniture`) proving 100% domain-neutral engine reusability
 - [x] decoupled commercial adapter (reservation deposit, private experience scheduling, itemized quotation breakdown)
 
+## Platform Extensions & Tools — Completed
+
+### Direction 1: Showcase SDK & Embeddable Web Component
+- [x] export SDK embed protocol contracts from `@showcase/core` (`ShowcaseInboundAction`, `ShowcaseOutboundEvent`, `createShowcaseEmbedClient`)
+- [x] implement zero-dependency `<showcase-viewer>` Web Component custom element (`apps/web/public/sdk/showcase-embed.js`)
+- [x] create frameless responsive embed route `/embed` supporting `slug`, `controls`, and `theme` parameters
+- [x] implement bidirectional postMessage bridge between host parent window and iframe showcase engine
+
+### Direction 2: Visual 3D CMS & Hotspot/Camera Studio
+- [x] create interactive Visual CMS Studio at `/admin/editor`
+- [x] live multi-vertical switching between Automotive (Astra One) and Furniture (Kroma Chair)
+- [x] interactive in-canvas 3D hotspot authoring with custom coordinates and camera preset linkage
+- [x] real-time camera preset framing capture (position, target, FOV) directly from viewport navigation
+- [x] live schema v0.4 JSON manifest inspector with one-click clipboard export
+- [x] thread-safe Go Gin REST backend synchronization (`GET /api/v1/showcases`, `PUT /api/v1/showcases/:slug`)
+
+### Direction 3: Device Performance Benchmarking & Profiling
+- [x] interactive benchmark suite at `/benchmark` with live WebGL & performance HUD
+- [x] 4-phase automated stress test runner (Orbit stress, variant rapid cycling, camera jump, idle recovery)
+- [x] compute latency distributions: Average FPS, Min FPS, P50, P90, P95, and P99 frame latency (ms)
+- [x] Hardware Tier Rating (Tier 1 Ultra, Tier 2 Standard, Tier 3 Mobile/Saver) with adaptive policy recommendations
+- [x] export downloadable JSON benchmark report
+- [x] headless automated asset profiler CLI: `pnpm benchmark:assets` (`scripts/profile-device-performance.mjs`) auditing disk, triangles, and VRAM into `dist/device-performance-audit.json`
+
 ## Production asset hardening — next
 
 The runtime plumbing, structural CI gate and first reproducible hero family are present. Browser/device validation remains open where real measurements are required.

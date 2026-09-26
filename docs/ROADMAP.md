@@ -211,38 +211,66 @@ Delivered:
 - anchored hotspots: active lumbar suspension, 5-star die-cast swivel base, and cervical headrest,
 - Go API seed manifest & validation coverage for both automotive and furniture verticals.
 
-## Phase 6 — Showcase SDK / Platform
+## Phase 6 — Showcase SDK & Embeddable Web Component
 
-Longer-term direction if the engine proves valuable:
+Status: **delivered**.
 
-- reusable package/API contract,
-- configurable themes,
-- vertical adapters,
-- embeddable showcase runtime,
-- CMS/asset integrations,
-- analytics hooks,
-- documented plugin extension points.
+Delivered:
+
+- zero-dependency custom element `<showcase-viewer>` (`/sdk/showcase-embed.js`) for embedding 3D showcases in any third-party website,
+- frameless embed route at `/embed?slug=...&controls=1|0&theme=dark|light`,
+- bidirectional `postMessage` protocol:
+  - Inbound actions: `showcase:select-option`, `showcase:set-camera-preset`, `showcase:request-snapshot`
+  - Outbound events: `showcase:ready`, `showcase:selection-changed`, `showcase:hotspot-clicked`, `showcase:snapshot`
+- typed SDK client in `@showcase/core`: `createShowcaseEmbedClient(iframeWindow, targetOrigin)`.
+
+## Phase 7 — Visual 3D CMS Studio (`/admin/editor`)
+
+Status: **delivered**.
+
+Delivered:
+
+- interactive in-canvas hotspot authoring with instant 3D placement, anchor IDs, and preset linkage,
+- camera preset framing tool: captures real-time camera position, look-at target, and FOV directly from viewport manipulation,
+- multi-vertical switcher for previewing and modifying both Automotive and Furniture manifests,
+- live JSON manifest inspector with clipboard export,
+- thread-safe Go API backend synchronization (`GET /api/v1/showcases`, `PUT /api/v1/showcases/:slug`).
+
+## Phase 8 — Device Performance Benchmarking & Profiling Suite (`/benchmark`)
+
+Status: **delivered**.
+
+Delivered:
+
+- automated 4-phase stress test runner (High-DPR orbit, variant material cycling, camera preset jumps, idle frame stabilization),
+- real-time latency analytics: Average FPS, Min FPS, P50, P90, P95, and P99 frame latency (ms),
+- hardware Tier Rating (Tier 1 Ultra, Tier 2 Standard, Tier 3 Constrained) with automated render policy tuning recommendations,
+- headless CLI profiler `pnpm benchmark:assets` auditing disk size, geometry buffers, and estimated VRAM into `dist/device-performance-audit.json`.
 
 ## Milestone order
 
 Do not reorder these because ecommerce feels easier to demonstrate.
 
 ```text
-Foundation                        ✓
+Foundation                                     ✓
    ↓
-Showcase Engine V1 core           ✓
+Showcase Engine V1 core                        ✓
    ↓
-Production asset/device hardening ✓
+Production asset/device hardening              ✓
    ↓
-Automotive Vertical V1            ✓
+Automotive Vertical V1                         ✓
    ↓
-Content / Admin pipeline          ✓
+Content / Admin pipeline                       ✓
    ↓
-Optional commerce                 ✓
+Optional commerce                              ✓
    ↓
-Second vertical (Furniture)       ✓
+Second vertical (Furniture)                    ✓
    ↓
-Showcase SDK/platform             ← next
+Showcase SDK / Embed Component (Phase 6)       ✓
+   ↓
+Visual 3D CMS Studio (Phase 7)                 ✓
+   ↓
+Device Performance Profiling Suite (Phase 8)   ✓
 ```
 
 ## Definition of done philosophy

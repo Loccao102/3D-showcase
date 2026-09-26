@@ -671,7 +671,16 @@ export function ShowcaseExperience({
               Astra One (Auto)
             </span>
             <Link href="/furniture" className="vertical-switch-btn">
-              Kroma Chair (Furniture)
+              Kroma Chair
+            </Link>
+            <Link href="/admin/editor" className="vertical-switch-btn">
+              3D Studio
+            </Link>
+            <Link href="/benchmark" className="vertical-switch-btn">
+              Benchmark
+            </Link>
+            <Link href="/embed?slug=automotive-concept-01" className="vertical-switch-btn">
+              Embed
             </Link>
           </nav>
         </div>

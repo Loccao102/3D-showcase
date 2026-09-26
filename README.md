@@ -66,19 +66,52 @@ Proves definitively that the engine is 100% domain-neutral and reusable:
 - active lumbar, 5-star swivel base, and cervical headrest hotspots,
 - identical decoupled commerce adapter consuming chair selection snapshots.
 
+## Platform Extensions & Tools
+
+### 1. Showcase Embed SDK & Web Component (`/embed` & `/sdk/showcase-embed.js`)
+- Frameless embeddable 3D viewport at `/embed?slug=...&controls=1|0`
+- Zero-dependency custom element `<showcase-viewer slug="automotive-concept-01" controls="1" height="600px">`
+- Bidirectional `postMessage` protocol:
+  - Inbound actions: `showcase:select-option`, `showcase:set-camera-preset`, `showcase:request-snapshot`
+  - Outbound events: `showcase:ready`, `showcase:selection-changed`, `showcase:hotspot-clicked`, `showcase:snapshot`
+- Typed embed client helper in `@showcase/core`: `createShowcaseEmbedClient(iframeWindow, targetOrigin)`
+
+### 2. Visual 3D CMS Studio (`/admin/editor`)
+- Interactive authoring studio for 3D manifests across all verticals
+- Real-time multi-vertical switching between Automotive (Astra One) and Furniture (Kroma Chair)
+- Hotspot authoring: anchor positions, labels, and linked camera presets with live in-canvas updates
+- Camera preset capture: record real-time viewport framing, position, look-at target, and FOV
+- Live JSON manifest inspector with instant clipboard export
+- Full backend persistence via Go Gin REST API (`GET /api/v1/showcases`, `PUT /api/v1/showcases/:slug`)
+
+### 3. Device Performance Benchmarking & Profiling (`/benchmark` & `pnpm benchmark:assets`)
+- Interactive 4-phase stress test runner:
+  - Phase 1: High DPR & Rapid Orbit Pacing
+  - Phase 2: Rapid Variant & Material Uniform Rebinding (250ms cadence)
+  - Phase 3: Camera Frustum Jump Stress
+  - Phase 4: Idle Quiescent Recovery & VRAM Stabilization
+- Latency profiling metrics: Average FPS, Min FPS, P50, P90, P95, and P99 frame latency (ms)
+- Hardware Tier Scoring (Tier 1 Ultra, Tier 2 Standard, Tier 3 Constrained/Mobile) with automated render policy recommendations
+- Headless CLI profiler: `pnpm benchmark:assets` audits disk size, triangle counts, vertex buffers, and estimated VRAM across all production LODs into `dist/device-performance-audit.json`
+
 ## Architecture at a glance
 
 ```text
-apps/web (Next.js)
-  ├─ responsive DOM experience
-  ├─ reference vertical manifest/content
+apps/web (Next.js 16)
+  ├─ /                     (Automotive showcase)
+  ├─ /furniture            (Furniture vertical proof)
+  ├─ /admin/editor         (Visual 3D CMS Studio)
+  ├─ /benchmark            (Device Performance Profiler)
+  ├─ /embed                (Frameless embeddable viewport)
+  ├─ /sdk/showcase-embed.js (Web Component SDK)
   └─ mounts showcase renderer
         │
         ├─ packages/showcase-core
         │    ├─ domain-neutral contracts
         │    ├─ selection + snapshot helpers
         │    ├─ asset/LOD resolution
-        │    └─ device render policy
+        │    ├─ device render policy
+        │    └─ embed SDK postMessage contracts
         │
         └─ packages/showcase-three
              ├─ R3F canvas/runtime
@@ -89,8 +122,9 @@ apps/web (Next.js)
              └─ hotspot overlay runtime
 
 apps/api (Go + Gin)
-  ├─ showcase manifest API shell
-  └─ future product/content services
+  ├─ GET /api/v1/showcases       (List registered showcase manifests)
+  ├─ GET /api/v1/showcases/:slug  (Retrieve specific showcase manifest)
+  └─ PUT /api/v1/showcases/:slug  (Thread-safe persist showcase manifest)
 
 optional commerce
   └─ consumes ShowcaseSelectionSnapshot only
@@ -117,7 +151,7 @@ Configure
    ↓
 Optional Technical / Exploded View
    ↓
-Optional Commerce Handoff
+Optional Commerce Handoff / Visual CMS / Embed SDK
 ```
 
 Direct interaction always outranks cinematic or ambient motion. Guided camera movement can be interrupted immediately, and reduced-motion users receive fast repositioning instead of long flights.
@@ -142,9 +176,9 @@ See `docs/VISUAL_DIRECTION.md` and `docs/MOTION_TYPOGRAPHY.md`.
 - React 19
 - Three.js + React Three Fiber + Drei
 - pnpm workspace
-- Go + Gin API
+- Go + Gin API (Thread-safe manifest repository)
 - glTF/GLB production target
-- Meshopt/Draco and KTX2/Basis planned for measured production-asset optimization
+- Meshopt/Draco and KTX2/Basis with automated promotion pipelines
 
 ## Run locally
 
@@ -158,14 +192,16 @@ Useful validation commands:
 ```bash
 pnpm validate:assets
 pnpm typecheck
-pnpm --filter @showcase/web build
+pnpm build
+pnpm benchmark:assets
 ```
 
 API validation:
 
 ```bash
 cd apps/api
-go test ./...
+go vet ./...
+go build ./...
 ```
 
 ## Asset philosophy
@@ -195,21 +231,23 @@ See `docs/ASSET_PIPELINE.md`.
 ## Roadmap
 
 ```text
-Foundation                        ✓
+Foundation                                    ✓
    ↓
-Showcase Engine V1 core           ✓
+Showcase Engine V1 core                       ✓
    ↓
-Production asset/device hardening ✓
+Production asset/device hardening             ✓
    ↓
-Automotive Vertical V1            ✓
+Automotive Vertical V1                        ✓
    ↓
-Content / Admin pipeline          ✓
+Second Vertical Proof (Furniture)             ✓
    ↓
-Optional Commerce                 ← current (ready for downstream integration)
+Optional Commerce Adapter                     ✓
    ↓
-Second Vertical Proof
+Visual 3D CMS / Manifest Editor (/admin)      ✓
    ↓
-Showcase SDK / Platform
+Showcase Embed SDK & Web Component (/sdk)     ✓
+   ↓
+Device Performance Profiling Suite (/benchmark)✓
 ```
 
 Commerce deliberately stays behind the reusable showcase engine.
