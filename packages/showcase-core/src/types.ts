@@ -57,6 +57,13 @@ export type VariantBinding =
       visible: boolean;
     }
   | {
+      type: "node-transform";
+      target: string;
+      positionOffset?: Vec3;
+      rotationOffset?: Vec3;
+      scale?: Vec3;
+    }
+  | {
       type: "asset-replacement";
       target: string;
       assetId: string;

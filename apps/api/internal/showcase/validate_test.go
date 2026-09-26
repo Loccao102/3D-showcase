@@ -19,6 +19,19 @@ func TestValidateManifest_Valid(t *testing.T) {
 	}
 }
 
+func TestValidateManifest_Furniture_Valid(t *testing.T) {
+	repo := showcase.NewMemoryRepository()
+	manifest, err := repo.FindBySlug("furniture-kroma-chair-01")
+	if err != nil {
+		t.Fatalf("unexpected error loading furniture manifest: %v", err)
+	}
+
+	errs := showcase.ValidateManifest(manifest)
+	if len(errs) != 0 {
+		t.Errorf("expected 0 validation errors for furniture manifest, got %d: %v", len(errs), errs)
+	}
+}
+
 func TestValidateManifest_MissingRequiredFields(t *testing.T) {
 	manifest := showcase.Manifest{}
 

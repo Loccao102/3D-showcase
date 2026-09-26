@@ -31,7 +31,7 @@ Implemented V1 capabilities include:
 - manifest-driven glTF/primitive assets by stable IDs,
 - responsive LOD URL resolution and generic asset slots,
 - semantic node/material/anchor lookup,
-- `material-color`, `node-visibility`, `asset-replacement` and `animation-state` runtime paths,
+- `material-color`, `node-visibility`, `node-transform`, `asset-replacement` and `animation-state` runtime paths,
 - cloned runtime materials and safe mutable-state restoration,
 - interruptible named camera presets with target/position/FOV tweening,
 - separate mobile camera framing,
@@ -42,24 +42,29 @@ Implemented V1 capabilities include:
 - demand rendering while idle,
 - responsive desktop/tablet/mobile configurator,
 - generic `ShowcaseSelectionSnapshot` for downstream consumers,
+- decoupled commercial adapter (`CommerceModal`) for reservations, test drives, and itemized quotes,
 - CI validation for the committed reference glTF fixtures.
 
 Production vehicle assets, real LOD geometry, KTX2/Meshopt benchmarking and physical-device profiling are tracked as **production hardening**, not missing core architecture.
 
-## Reference vertical: automotive
+## Reference verticals
 
-The reference screen demonstrates a premium vehicle showcase where visitors can:
+### 1. Automotive — Astra One
+The flagship automotive showcase demonstrates:
+- interactive 3D orbit and zoom,
+- dynamic exterior finish perceptual color morphing,
+- whole-asset Touring and Sport aero trim replacement with monotonic LOD packages,
+- interactive Exploded Technical Mode (`mode: "technical"`) elevating canopy +0.35m, offsetting wheels, with 800V SiC and 102 kWh battery HUD overlay,
+- anchored semantic hotspots and guided camera views,
+- decoupled commercial reservation, test drive scheduling, and itemized pricing quotation.
 
-- orbit and zoom the product,
-- switch finish colors,
-- switch Touring/Sport assets through a generic asset slot,
-- toggle scene-node visibility,
-- open three semantic hotspots,
-- enter interruptible guided camera views,
-- return directly to free exploration,
-- produce a configuration snapshot independent of commerce.
-
-The same engine is intended to support furniture, electronics, industrial equipment, fashion products, museum objects and other products without adding those domain concepts to `@showcase/core`.
+### 2. Furniture — Kroma Lounge Chair (`/furniture`)
+Proves definitively that the engine is 100% domain-neutral and reusable:
+- architectural ergonomics showcase with monotonic LOD models,
+- upholstery color bindings and architectural base finish options,
+- dynamic recline postural mode articulated via domain-neutral `node-transform`,
+- active lumbar, 5-star swivel base, and cervical headrest hotspots,
+- identical decoupled commerce adapter consuming chair selection snapshots.
 
 ## Architecture at a glance
 

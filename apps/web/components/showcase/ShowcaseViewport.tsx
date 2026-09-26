@@ -148,7 +148,9 @@ export default function ShowcaseViewport({
     () =>
       bindings.filter(
         (binding) =>
-          binding.type === "material-color" || binding.type === "node-visibility",
+          binding.type === "material-color" ||
+          binding.type === "node-visibility" ||
+          binding.type === "node-transform",
       ),
     [bindings],
   );

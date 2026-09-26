@@ -11,10 +11,13 @@ import {
   type RenderPolicy,
   type ShowcaseManifest,
   type ShowcaseSelectionSnapshot,
+  type VariantBinding,
 } from "@showcase/core";
 import type { AssetRuntimeEvent } from "@showcase/three";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CommerceModal, type CommerceTab } from "../commerce/CommerceModal";
 
 const ShowcaseViewport = dynamic(() => import("./ShowcaseViewport"), {
   ssr: false,
@@ -326,6 +329,18 @@ const manifest: ShowcaseManifest = {
         fov: 42,
       },
     },
+    {
+      id: "technical",
+      label: "Technical inspection",
+      position: [5.2, 4.2, 5.6],
+      target: [0, 0.7, 0],
+      fov: 32,
+      mobile: {
+        position: [5.8, 4.8, 6.4],
+        target: [0, 0.7, 0],
+        fov: 38,
+      },
+    },
   ],
   metadata: {
     vertical: "automotive",
@@ -495,10 +510,46 @@ export function ShowcaseExperience({
     () => resolveSelectionBindings(effectiveManifest, selection),
     [effectiveManifest, selection],
   );
+
+  const technicalBindings = useMemo<VariantBinding[]>(() => {
+    if (mode !== "technical") return [];
+    return [
+      {
+        type: "node-transform",
+        target: "cabin",
+        positionOffset: [0, 0.35, 0],
+      },
+      {
+        type: "node-transform",
+        target: "wheel_fl*",
+        positionOffset: [0, 0, 0.28],
+      },
+      {
+        type: "node-transform",
+        target: "wheel_rl*",
+        positionOffset: [0, 0, 0.28],
+      },
+      {
+        type: "node-transform",
+        target: "wheel_fr*",
+        positionOffset: [0, 0, -0.28],
+      },
+      {
+        type: "node-transform",
+        target: "wheel_rr*",
+        positionOffset: [0, 0, -0.28],
+      },
+    ];
+  }, [mode]);
+
   const bindings = useMemo(
-    () => resolvedBindings.map((resolved) => resolved.binding),
-    [resolvedBindings],
+    () => [
+      ...resolvedBindings.map((resolved) => resolved.binding),
+      ...technicalBindings,
+    ],
+    [resolvedBindings, technicalBindings],
   );
+
   const snapshot = useMemo(
     () => createSelectionSnapshot(effectiveManifest, selection),
     [effectiveManifest, selection],
@@ -577,6 +628,28 @@ export function ShowcaseExperience({
     }, 2800);
   }, []);
 
+  const [isCommerceOpen, setIsCommerceOpen] = useState(false);
+  const [commerceInitialTab, setCommerceInitialTab] = useState<CommerceTab>("reserve");
+
+  const openCommerce = useCallback((tab: CommerceTab = "reserve") => {
+    setCommerceInitialTab(tab);
+    setIsCommerceOpen(true);
+  }, []);
+
+  const toggleTechnicalMode = useCallback(() => {
+    setUserHasInteracted(true);
+    if (mode === "technical") {
+      setMode("explore");
+      setActiveCameraPresetId(effectiveManifest.scene.defaultCameraPresetId);
+      setCameraRequestKey((c) => c + 1);
+    } else {
+      setMode("technical");
+      setActiveCameraPresetId("technical");
+      setActiveHotspotId(undefined);
+      setCameraRequestKey((c) => c + 1);
+    }
+  }, [effectiveManifest.scene.defaultCameraPresetId, mode]);
+
   const activeTrim = selection.trim?.includes("trim-sport") ? "sport" : "touring";
   const currentSpecs = vehicleSpecifications[activeTrim];
 
@@ -587,13 +660,32 @@ export function ShowcaseExperience({
       </a>
 
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="3D Showcase home">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>3D / SHOWCASE</span>
-        </a>
+        <div className="header-left">
+          <a className="brand" href="#top" aria-label="3D Showcase home">
+            <span className="brand-mark" aria-hidden="true" />
+            <span>3D / SHOWCASE</span>
+          </a>
+
+          <nav className="vertical-switcher" aria-label="Showcase vertical switcher">
+            <span className="vertical-switch-btn" data-active="true" aria-current="page">
+              Astra One (Auto)
+            </span>
+            <Link href="/furniture" className="vertical-switch-btn">
+              Kroma Chair (Furniture)
+            </Link>
+          </nav>
+        </div>
+
         <div className="header-meta">
           <span>CORE 0.4</span>
           <span className="quality-chip">{renderPolicy.quality} render</span>
+          <button
+            type="button"
+            className="header-cta-btn"
+            onClick={() => openCommerce("reserve")}
+          >
+            Inquire / Reserve
+          </button>
         </div>
       </header>
 
@@ -667,6 +759,19 @@ export function ShowcaseExperience({
             onAssetRuntimeEvent={handleAssetRuntimeEvent}
           />
 
+          <div className="stage-top-controls">
+            <button
+              type="button"
+              className="technical-toggle-btn"
+              data-active={mode === "technical"}
+              onClick={toggleTechnicalMode}
+              aria-pressed={mode === "technical"}
+            >
+              <span className="btn-icon">{mode === "technical" ? "◧" : "◨"}</span>
+              <span>{mode === "technical" ? "Exit Technical View" : "Technical Exploded View"}</span>
+            </button>
+          </div>
+
           <div
             className="stage-status"
             data-status={assetStatus}
@@ -676,6 +781,69 @@ export function ShowcaseExperience({
             <span>{assetStatus === "ready" ? mode : assetStatus}</span>
             {assetError ? <span>{assetError}</span> : null}
           </div>
+
+          {mode === "technical" ? (
+            <div className="technical-hud-overlay" role="region" aria-label="Technical inspection readouts">
+              <div className="technical-hud-header">
+                <div>
+                  <span className="hud-badge">EXPLODED TECHNICAL ARCHITECTURE</span>
+                  <h2 className="hud-title">Astra One 800V Powertrain & Chassis</h2>
+                </div>
+                <button
+                  type="button"
+                  className="hud-exit-btn"
+                  onClick={toggleTechnicalMode}
+                >
+                  ✕ Return to Standard
+                </button>
+              </div>
+
+              <div className="technical-hud-grid">
+                <div className="hud-card">
+                  <div className="hud-card-head">
+                    <span className="hud-icon">⚡</span>
+                    <strong>800V SiC Inverter System</strong>
+                  </div>
+                  <p>Dual Silicon Carbide inverters deliver 98.4% electrical efficiency with peak 350 kW DC charging (10–80% in 18 min).</p>
+                  <span className="hud-metric">380–485 kW Peak Output</span>
+                </div>
+
+                <div className="hud-card">
+                  <div className="hud-card-head">
+                    <span className="hud-icon">🔋</span>
+                    <strong>102 kWh Skateboard Pack</strong>
+                  </div>
+                  <p>Structural liquid-cooled NMC pouch cells integrated into the floorpan, optimizing torsional rigidity and center of gravity.</p>
+                  <span className="hud-metric">620 km WLTP Range</span>
+                </div>
+
+                <div className="hud-card">
+                  <div className="hud-card-head">
+                    <span className="hud-icon">🏎️</span>
+                    <strong>Adaptive Air Suspension</strong>
+                  </div>
+                  <p>Continuous damping control (CDC) with multi-chamber air springs and wheel assembly offsets for inspection.</p>
+                  <span className="hud-metric">1,000 Hz Road Scanning</span>
+                </div>
+
+                <div className="hud-card">
+                  <div className="hud-card-head">
+                    <span className="hud-icon">🛡️</span>
+                    <strong>Carbon-Alloy Spaceframe</strong>
+                  </div>
+                  <p>Hybrid extruded aluminum chassis with carbon-composite structural canopy ring elevated +0.35m in exploded view.</p>
+                  <span className="hud-metric">42,000 Nm/deg Stiffness</span>
+                </div>
+              </div>
+
+              <div className="hud-callouts-bar">
+                <span className="hud-callout-tag">CANOPY ELEVATION: +0.35m</span>
+                <span className="hud-callout-tag">TRACK OFFSET: ±0.28m</span>
+                <span className="hud-callout-tag">POWERTRAIN: DUAL SIC MOTORS</span>
+                <span className="hud-callout-tag">BRAKING: 4-PISTON MONOBLOC</span>
+              </div>
+            </div>
+          ) : null}
 
           {activeHotspotContent ? (
             <div className="stage-detail-card" role="dialog" aria-live="polite">
@@ -789,6 +957,13 @@ export function ShowcaseExperience({
             <div className="selection-actions">
               <button
                 type="button"
+                className="reserve-action-btn"
+                onClick={() => openCommerce("reserve")}
+              >
+                Inquire / Reserve
+              </button>
+              <button
+                type="button"
                 onClick={copyShareLink}
                 aria-label="Copy shareable configuration link"
               >
@@ -819,6 +994,14 @@ export function ShowcaseExperience({
           </div>
         </aside>
       </section>
+
+      <CommerceModal
+        isOpen={isCommerceOpen}
+        onClose={() => setIsCommerceOpen(false)}
+        snapshot={snapshot}
+        manifest={effectiveManifest}
+        initialTab={commerceInitialTab}
+      />
 
       {toastMessage ? (
         <div className="share-toast" role="status" aria-live="polite">

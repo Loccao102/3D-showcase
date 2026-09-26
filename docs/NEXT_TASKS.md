@@ -20,11 +20,13 @@ Showcase Engine V1 core is now functionally complete. This file separates comple
 
 - [x] apply `material-color`
 - [x] apply `node-visibility`
+- [x] apply `node-transform` (with wildcard prefix targeting and smooth easing)
 - [x] apply `asset-replacement`
 - [x] apply `animation-state` to semantic asset / slot targets
 - [x] restore mutable scene defaults safely
 - [x] validate missing mutation targets without crashing the scene
 - [x] expose selection snapshot independently from commerce
+- [x] decoupled commercial adapter modal (`CommerceModal`) consuming snapshot with zero renderer imports
 
 ## V1 Core — Camera director
 
@@ -70,6 +72,9 @@ The automotive screen is a proof vertical, not part of the engine API.
 - [x] lightweight deterministic reference fixtures for CI regression coverage
 - [x] semantic animation clip available for `animation-state` testing
 - [x] live proof upgraded to a self-authored GLB hero family instead of cube-only fixtures
+- [x] interactive exploded technical mode (`mode: "technical"`) elevating canopy +0.35m, offsetting wheels ±0.28m with 800V HUD
+- [x] second vertical proof: Kroma Ergonomic Lounge Chair (`/furniture`) proving 100% domain-neutral engine reusability
+- [x] decoupled commercial adapter (reservation deposit, private experience scheduling, itemized quotation breakdown)
 
 ## Production asset hardening — next
 

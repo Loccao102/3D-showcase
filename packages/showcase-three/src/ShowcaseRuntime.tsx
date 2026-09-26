@@ -110,6 +110,19 @@ export class SceneRegistry {
   }
 
   getObjects(target: string): Object3D[] {
+    if (target.endsWith("*")) {
+      const prefix = target.slice(0, -1);
+      const matches = new Set<Object3D>();
+      for (const [key, objs] of this.objects.entries()) {
+        if (key.startsWith(prefix)) {
+          for (const obj of objs) {
+            matches.add(obj);
+          }
+        }
+      }
+      return [...matches];
+    }
+
     return [...(this.objects.get(target) ?? [])];
   }
 
@@ -284,6 +297,96 @@ class SceneBindingEngine {
           this.requestRender?.();
           this.cleanup.push(() => {
             object.visible = previousVisibility;
+            this.requestRender?.();
+          });
+        }
+
+        return undefined;
+      }
+
+      case "node-transform": {
+        const objects = this.registry.getObjects(binding.target);
+
+        if (objects.length === 0) {
+          return {
+            level: "warning",
+            code: "missing-target",
+            binding,
+            message: `No scene node found for target '${binding.target}'`,
+          };
+        }
+
+        for (const object of objects) {
+          const initialPos = object.position.clone();
+          const initialRot = object.rotation.clone();
+          const initialScale = object.scale.clone();
+
+          const targetPos = initialPos.clone();
+          if (binding.positionOffset) {
+            targetPos.x += binding.positionOffset[0];
+            targetPos.y += binding.positionOffset[1];
+            targetPos.z += binding.positionOffset[2];
+          }
+
+          const targetRot = initialRot.clone();
+          if (binding.rotationOffset) {
+            targetRot.x += binding.rotationOffset[0];
+            targetRot.y += binding.rotationOffset[1];
+            targetRot.z += binding.rotationOffset[2];
+          }
+
+          const targetScale = binding.scale
+            ? initialScale.clone().set(binding.scale[0], binding.scale[1], binding.scale[2])
+            : initialScale.clone();
+
+          let frameId: number | undefined;
+          let cancelled = false;
+
+          if (this.materialTransitionMs <= 0) {
+            object.position.copy(targetPos);
+            object.rotation.copy(targetRot);
+            object.scale.copy(targetScale);
+            object.updateMatrix();
+            this.requestRender?.();
+          } else {
+            const startedAt = performance.now();
+            const fromPos = object.position.clone();
+            const fromRot = object.rotation.clone();
+            const fromScale = object.scale.clone();
+
+            const tick = (now: number) => {
+              if (cancelled) return;
+              const rawProgress = Math.min(
+                1,
+                (now - startedAt) / this.materialTransitionMs,
+              );
+              const progress = easeOutCubic(rawProgress);
+
+              object.position.lerpVectors(fromPos, targetPos, progress);
+              object.rotation.x = fromRot.x + (targetRot.x - fromRot.x) * progress;
+              object.rotation.y = fromRot.y + (targetRot.y - fromRot.y) * progress;
+              object.rotation.z = fromRot.z + (targetRot.z - fromRot.z) * progress;
+              object.scale.lerpVectors(fromScale, targetScale, progress);
+              object.updateMatrix();
+              this.requestRender?.();
+
+              if (rawProgress < 1) {
+                frameId = requestAnimationFrame(tick);
+              }
+            };
+
+            frameId = requestAnimationFrame(tick);
+          }
+
+          this.cleanup.push(() => {
+            cancelled = true;
+            if (frameId !== undefined) {
+              cancelAnimationFrame(frameId);
+            }
+            object.position.copy(initialPos);
+            object.rotation.copy(initialRot);
+            object.scale.copy(initialScale);
+            object.updateMatrix();
             this.requestRender?.();
           });
         }

@@ -31,12 +31,15 @@ type SceneDefinition struct {
 }
 
 type VariantBinding struct {
-	Type    string `json:"type"`
-	Target  string `json:"target"`
-	Value   string `json:"value,omitempty"`
-	Visible *bool  `json:"visible,omitempty"`
-	AssetID string `json:"assetId,omitempty"`
-	Clip    string `json:"clip,omitempty"`
+	Type           string  `json:"type"`
+	Target         string  `json:"target"`
+	Value          string  `json:"value,omitempty"`
+	Visible        *bool   `json:"visible,omitempty"`
+	AssetID        string  `json:"assetId,omitempty"`
+	Clip           string  `json:"clip,omitempty"`
+	PositionOffset *Vec3   `json:"positionOffset,omitempty"`
+	RotationOffset *Vec3   `json:"rotationOffset,omitempty"`
+	Scale          *Vec3   `json:"scale,omitempty"`
 }
 
 type Option struct {

@@ -179,17 +179,15 @@ Future pipeline expansion:
 
 ## Phase 4 — Optional Commerce
 
-Only begin this phase after the showcase loop is compelling and reusable.
+Status: **delivered (decoupled commercial handoff adapter)**.
 
-Potential modules:
+Delivered:
 
-- inquiry / quote request,
-- booking / test drive,
-- reservation deposit,
-- cart,
-- checkout,
-- inventory/dealer integration,
-- order tracking.
+- decoupled commercial modal gateway (`CommerceModal.tsx`) strictly consuming `ShowcaseSelectionSnapshot`,
+- **Reservation Workflow**: refundable allocation deposit ($1,000 auto / $300 furniture), customer info, preferred experience center, and instant reference generation,
+- **Private Experience Scheduling**: private test drive / showroom consultation booking with date/time pickers and credential acknowledgement,
+- **Itemized Quotation Breakdown**: dynamic build sheet pricing reflecting active finish, aero trim, dynamics packages, factory logistics, and one-click JSON spec export,
+- strict architectural isolation: zero Three.js, R3F, or WebGL imports in the commerce adapter layer.
 
 Rule:
 
@@ -198,24 +196,20 @@ commerce → consumes ShowcaseSelectionSnapshot
 showcase → never depends on commerce
 ```
 
-If the commerce domain becomes enterprise-scale, it may be extracted into separate services without changing the showcase packages.
-
 ## Phase 5 — Second Vertical Proof
 
-This phase proves that the architecture is genuinely reusable.
+Status: **delivered (Kroma Ergonomic Lounge Chair)**.
 
-Choose a product with interaction needs different from automotive, for example:
+Proves definitively that the `@showcase/core` and `@showcase/three` architecture is 100% domain-neutral and reusable without a single automotive rewrite.
 
-- premium chair / furniture,
-- sneaker,
-- laptop / electronics,
-- industrial machine.
+Delivered:
 
-Success condition:
-
-- `showcase-core` needs no domain-specific rewrite,
-- renderer remains unchanged or only gains generic capability,
-- most work occurs in assets, manifest and vertical adapter.
+- self-authored Kroma Ergonomic Lounge Chair hero model with monotonic LODs (`kroma-chair-lod0.glb` 17 KB, `lod1.glb` 14 KB, `lod2.glb` 12 KB),
+- dedicated `/furniture` route and seamless header vertical switcher (`Astra One ↔ Kroma Chair`),
+- domain-neutral generic `node-transform` runtime binding support: dynamic recline mechanism articulated via node offsets,
+- architectural specifications panel (BIFMA X5.1 certification, 4D active lumbar, 98% recyclable alloy, 12-year warranty),
+- anchored hotspots: active lumbar suspension, 5-star die-cast swivel base, and cervical headrest,
+- Go API seed manifest & validation coverage for both automotive and furniture verticals.
 
 ## Phase 6 — Showcase SDK / Platform
 
