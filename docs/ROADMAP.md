@@ -238,11 +238,11 @@ Automotive Vertical V1            ✓
    ↓
 Content / Admin pipeline          ✓
    ↓
-Optional commerce                 ← current
+Optional commerce                 ✓
    ↓
-Second vertical
+Second vertical (Furniture)       ✓
    ↓
-SDK/platform
+Showcase SDK/platform             ← next
 ```
 
 ## Definition of done philosophy

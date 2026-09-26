@@ -42,7 +42,7 @@ const furnitureManifest: ShowcaseManifest = {
         slot: "subject",
         default: true,
         url: "/models/kroma-chair-lod0.glb",
-        fallbackImage: "/showcase/astra-one-poster.svg",
+        fallbackImage: "/showcase/kroma-chair-poster.svg",
         lod: [
           {
             maxViewportWidth: 720,
@@ -333,6 +333,45 @@ export function FurnitureExperience() {
     return () => window.removeEventListener("resize", updatePolicy);
   }, []);
 
+  // Restore configuration from URL query params on initial mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl: Record<string, string[]> = {};
+    for (const group of furnitureManifest.optionGroups) {
+      const val = params.get(group.id);
+      if (val && group.options.some((opt) => opt.id === val)) {
+        fromUrl[group.id] = [val];
+      }
+    }
+    if (Object.keys(fromUrl).length > 0) {
+      setSelection((prev) => ({ ...prev, ...fromUrl }));
+    }
+  }, []);
+
+  // Sync selection changes to URL query state
+  useEffect(() => {
+    if (typeof window === "undefined" || !userHasInteracted) return;
+    const params = new URLSearchParams();
+    for (const [groupId, optionIds] of Object.entries(selection)) {
+      if (optionIds[0]) {
+        params.set(groupId, optionIds[0]);
+      }
+    }
+    const newSearch = params.toString();
+    const newUrl = newSearch
+      ? `${window.location.pathname}?${newSearch}`
+      : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [selection, userHasInteracted]);
+
+  const copyShareLink = useCallback(async () => {
+    if (!navigator.clipboard) return;
+    await navigator.clipboard.writeText(window.location.href);
+    setToastMessage("Configuration link copied to clipboard");
+    setTimeout(() => setToastMessage(null), 2800);
+  }, []);
+
   const effectiveManifest = useMemo<ShowcaseManifest>(() => {
     const isNight = selection.atmosphere?.includes("atmosphere-night");
     return {
@@ -489,6 +528,17 @@ export function FurnitureExperience() {
           aria-label="Interactive 3D furniture showcase"
           aria-labelledby="showcase-title"
         >
+          {effectiveManifest.scene.assets[0]?.fallbackImage ? (
+            <div
+              className="showcase-poster"
+              data-visible={assetStatus !== "ready"}
+              style={{
+                backgroundImage: `url(${effectiveManifest.scene.assets[0].fallbackImage})`,
+              }}
+              aria-hidden="true"
+            />
+          ) : null}
+
           <ShowcaseViewport
             manifest={effectiveManifest}
             renderPolicy={renderPolicy}
@@ -622,6 +672,13 @@ export function FurnitureExperience() {
                 onClick={() => openCommerce("reserve")}
               >
                 Inquire / Order
+              </button>
+              <button
+                type="button"
+                onClick={copyShareLink}
+                aria-label="Copy shareable configuration link"
+              >
+                Share Link
               </button>
               <button
                 type="button"
