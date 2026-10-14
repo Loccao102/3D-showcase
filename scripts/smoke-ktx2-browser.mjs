@@ -206,6 +206,29 @@ async function runSmokeCase(browser, {
       `${label}: stage reported an error: ${statusText}`,
     );
 
+    if (contextOptions.hasTouch) {
+      const toggle = page.locator(".technical-toggle-btn");
+      await toggle.scrollIntoViewIfNeeded();
+      const rect = await toggle.boundingBox();
+      assert(rect && rect.width > 20 && rect.height > 20, `${label}: mobile technical control is not visible`);
+      await page.touchscreen.tap(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      await page.locator(".technical-hud-overlay").waitFor({ state: "visible", timeout: 10000 });
+      assert(
+        (await toggle.getAttribute("aria-pressed")) === "true",
+        `${label}: touch activation did not set pressed state`,
+      );
+      const close = page.locator(".hud-exit-btn");
+      await close.scrollIntoViewIfNeeded();
+      const closeRect = await close.boundingBox();
+      assert(closeRect, `${label}: technical view lacks touch-accessible exit`);
+      await page.touchscreen.tap(closeRect.x + closeRect.width / 2, closeRect.y + closeRect.height / 2);
+      await page.locator(".technical-hud-overlay").waitFor({ state: "hidden", timeout: 10000 });
+      assert(
+        (await toggle.getAttribute("aria-pressed")) === "false",
+        `${label}: touch exit did not restore standard view`,
+      );
+    }
+
     if (screenshotDir) {
       await mkdir(screenshotDir, { recursive: true });
       const fileName = `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.png`;
