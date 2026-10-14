@@ -87,8 +87,10 @@ async function runSmokeCase(browser, {
   expectedModel,
   forbiddenModel,
   requireBasisTranscoder,
+  contextOptions = {},
+  expectedBaseQuality,
 }) {
-  const context = await browser.newContext({ viewport });
+  const context = await browser.newContext({ viewport, ...contextOptions });
   const page = await context.newPage();
   const responses = [];
   const requestFailures = [];
@@ -150,6 +152,13 @@ async function runSmokeCase(browser, {
       await page.locator("canvas").count() > 0,
       `${label}: showcase reached ready without a canvas`,
     );
+    if (expectedBaseQuality) {
+      const quality = await page.locator("[data-base-quality]").first().getAttribute("data-base-quality");
+      assert(
+        quality === expectedBaseQuality,
+        `${label}: expected base render quality '${expectedBaseQuality}', got '${quality}'`,
+      );
+    }
 
     const modelResponses = responses.filter((entry) => entry.url.includes("/models/"));
     const basisResponses = responses.filter((entry) => entry.url.includes("/basis/"));
@@ -287,6 +296,27 @@ try {
       ? "/models/astra-one-touring-lod2.glb"
       : "/models/astra-one-touring-lod2-ktx2.glb",
     requireBasisTranscoder: false,
+  });
+
+  // CI emulates mobile touch/reduced-motion in Chromium. Real Safari/Android
+  // GPU profiling remains an independent acceptance requirement.
+  await runSmokeCase(browser, {
+    label: expectMeshopt
+      ? "mobile touch reduced motion PNG + Meshopt"
+      : "mobile touch reduced motion PNG",
+    viewport: { width: 390, height: 844 },
+    contextOptions: {
+      isMobile: true,
+      hasTouch: true,
+      reducedMotion: "reduce",
+      deviceScaleFactor: 2,
+    },
+    expectedModel: `/models/astra-one-touring-lod2${meshoptSuffix}.glb`,
+    forbiddenModel: expectMeshopt
+      ? "/models/astra-one-touring-lod2.glb"
+      : "/models/astra-one-touring-lod2-ktx2.glb",
+    requireBasisTranscoder: false,
+    expectedBaseQuality: "low",
   });
 
   console.log(
