@@ -120,12 +120,42 @@ async function main() {
   ];
 
   const results = [];
+  const contracts = JSON.parse(await readFile(
+    resolve(process.cwd(), "scripts/showcase-asset-contracts.json"), "utf8"
+  ));
+  const budgetByFilename = new Map(
+    contracts.assets.map(contract => [contract.path.split("/").at(-1), contract])
+  );
+  const budgetFailures = [];
 
   for (const filename of files) {
     const fullPath = resolve(process.cwd(), "apps/web/public/models", filename);
     const bytes = await readFile(fullPath);
     const doc = parseGlbDocument(bytes, filename);
     const profile = analyzeGlb(doc, bytes.byteLength, filename);
+    const contract = budgetByFilename.get(filename);
+    if (contract) {
+      const failures = [];
+      if (bytes.byteLength > contract.maxFileBytes) {
+        failures.push(`file size ${bytes.byteLength} exceeds ${contract.maxFileBytes}`);
+      }
+      if (profile.triangles > contract.maxTriangles) {
+        failures.push(`triangles ${profile.triangles} exceeds ${contract.maxTriangles}`);
+      }
+      profile.budget = {
+        status: failures.length === 0 ? "pass" : "fail",
+        maxFileBytes: contract.maxFileBytes,
+        maxTriangles: contract.maxTriangles,
+        failures
+      };
+      if (failures.length > 0) {
+        budgetFailures.push(`${filename}: ${failures.join(", ")}`);
+      }
+    } else {
+      // Furniture lacks explicit asset contract budgets; do not claim pass
+      // simply because the profiler finished reading the file.
+      profile.budget = { status: "not-contracted" };
+    }
     results.push(profile);
   }
 
@@ -139,6 +169,7 @@ async function main() {
       Materials: r.materialsCount,
       "VRAM Est.": r.estimatedGpuVramMb,
       "Target Tier": r.recommendedTier,
+      "Budget": r.budget.status,
     }))
   );
 
@@ -149,6 +180,9 @@ async function main() {
     summary: {
       totalTrianglesLod0: results.filter(r => r.file.includes("lod0")).reduce((sum, r) => sum + r.triangles, 0),
       totalDiskBytes: results.reduce((sum, r) => sum + r.fileSizeBytes, 0),
+      budgetedAssets: results.filter(r => r.budget.status !== "not-contracted").length,
+      unbudgetedAssets: results.filter(r => r.budget.status === "not-contracted").map(r => r.file),
+      budgetViolations: budgetFailures,
       tierDistribution: {
         tier1: results.filter(r => r.recommendedTier.includes("Tier 1")).length,
         tier2: results.filter(r => r.recommendedTier.includes("Tier 2")).length,
@@ -163,7 +197,10 @@ async function main() {
   await writeFile(outputPath, JSON.stringify(report, null, 2), "utf8");
 
   console.log(`\n✓ Performance profile audit successfully written to: ${outputPath}`);
-  console.log("✓ All 9 LOD assets conform to cross-device rendering budget limits.");
+  console.log(`Contract budgets: ${results.filter(r => r.budget.status === "pass").length} pass, ${budgetFailures.length} fail, ${results.filter(r => r.budget.status === "not-contracted").length} not assessed.`);
+  if (budgetFailures.length) {
+    throw new Error("Production asset budgets exceeded: " + budgetFailures.join(" | "));
+  }
 }
 
 main().catch((err) => {
