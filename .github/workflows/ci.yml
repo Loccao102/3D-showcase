@@ -59,6 +59,9 @@ jobs:
       - name: Validate showcase assets
         run: pnpm validate:assets:production
 
+      - name: Profile all nine assets and enforce contracted budgets
+        run: pnpm benchmark:assets
+
       - name: Typecheck
         run: pnpm typecheck
 
