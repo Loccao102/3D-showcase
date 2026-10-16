@@ -35,6 +35,58 @@ test("rejects a GLB with a forged length, truncated chunk, or missing magic", ()
   assert.throws(() => parseGlbDocument(wrongMagic, "bad.glb"), /invalid GLB magic/);
 });
 
+test("rejects corrupt trailing BIN chunks even when the JSON chunk is valid", () => {
+  const doc = glb({ asset: { version: "2.0" } });
+  const corrupt = Buffer.concat([doc, Buffer.alloc(8)]);
+  corrupt.writeUInt32LE(corrupt.byteLength, 8);
+  corrupt.writeUInt32LE(16, doc.byteLength);
+  corrupt.writeUInt32LE(0x004e4942, doc.byteLength + 4);
+  assert.throws(
+    () => parseGlbDocument(corrupt, "truncated-bin.glb"),
+    /GLB chunk is out of range/
+  );
+});
+
+test("rejects BIN-first, unaligned and duplicate JSON chunks", () => {
+  const original = glb({ asset: { version: "2.0" } });
+  const binFirst = Buffer.from(original);
+  binFirst.writeUInt32LE(0x004e4942, 16);
+  assert.throws(
+    () => parseGlbDocument(binFirst, "bin-first.glb"),
+    /first GLB chunk must be JSON/
+  );
+
+  const unaligned = Buffer.from(original);
+  unaligned.writeUInt32LE(unaligned.readUInt32LE(12) - 1, 12);
+  assert.throws(
+    () => parseGlbDocument(unaligned, "unaligned.glb"),
+    /four-byte aligned/
+  );
+
+  const jsonLength = original.readUInt32LE(12);
+  const duplicate = Buffer.concat([
+    original,
+    Buffer.alloc(8),
+    original.subarray(20, 20 + jsonLength),
+  ]);
+  duplicate.writeUInt32LE(duplicate.byteLength, 8);
+  duplicate.writeUInt32LE(jsonLength, original.byteLength);
+  duplicate.writeUInt32LE(0x4e4f534a, original.byteLength + 4);
+  assert.throws(
+    () => parseGlbDocument(duplicate, "duplicate-json.glb"),
+    /duplicate GLB JSON chunk/
+  );
+});
+
+test("accepts a correctly encoded binary chunk after the JSON document", () => {
+  const original = glb({ asset: { version: "2.0" } });
+  const full = Buffer.concat([original, Buffer.alloc(8), Buffer.alloc(8)]);
+  full.writeUInt32LE(full.byteLength, 8);
+  full.writeUInt32LE(8, original.byteLength);
+  full.writeUInt32LE(0x004e4942, original.byteLength + 4);
+  assert.equal(parseGlbDocument(full, "valid-bin.glb").asset.version, "2.0");
+});
+
 test("geometry estimate deduplicates mesh views and excludes embedded texture bytes", () => {
   const doc = {
     meshes: [{
