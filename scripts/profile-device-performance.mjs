@@ -80,8 +80,19 @@ function analyzeGlb(document, byteLength, filename) {
       ];
       for (const accessorIndex of accessors) {
         if (!Number.isInteger(accessorIndex)) continue;
-        const view = document.accessors?.[accessorIndex]?.bufferView;
-        if (Number.isInteger(view)) geometryViews.add(view);
+        const accessor = document.accessors?.[accessorIndex];
+        if (Number.isInteger(accessor?.bufferView)) {
+          geometryViews.add(accessor.bufferView);
+        }
+        // Sparse glTF accessors store geometry overrides in separate index
+        // and value buffers. Omitting those buffers undercounts GPU geometry.
+        const sparse = accessor?.sparse;
+        if (Number.isInteger(sparse?.indices?.bufferView)) {
+          geometryViews.add(sparse.indices.bufferView);
+        }
+        if (Number.isInteger(sparse?.values?.bufferView)) {
+          geometryViews.add(sparse.values.bufferView);
+        }
       }
     }
   }
