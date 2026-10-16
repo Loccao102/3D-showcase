@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
@@ -14,6 +15,8 @@ function parseGlbDocument(bytes, filePath) {
   assert(bytes.byteLength >= 20, `${filePath}: GLB is too small`);
   assert(bytes.readUInt32LE(0) === GLB_MAGIC, `${filePath}: invalid GLB magic`);
   assert(bytes.readUInt32LE(4) === 2, `${filePath}: GLB version must be 2`);
+  assert(bytes.readUInt32LE(8) === bytes.byteLength,
+    `${filePath}: declared GLB file length disagrees with actual bytes`);
 
   let offset = 12;
   while (offset < bytes.byteLength) {
@@ -64,9 +67,25 @@ function analyzeGlb(document, byteLength, filename) {
     }
   }
 
-  // Calculate uncompressed geometry buffer sizes
-  for (const bufferView of document.bufferViews ?? []) {
-    geometryBufferBytes += bufferView.byteLength ?? 0;
+  // Only count buffer views reachable from mesh accessors. Summing every
+  // buffer view incorrectly included embedded image textures as geometry.
+  const geometryViews = new Set();
+  for (const mesh of document.meshes ?? []) {
+    for (const primitive of mesh.primitives ?? []) {
+      const accessors = [
+        primitive.indices,
+        ...Object.values(primitive.attributes ?? {}),
+        ...(primitive.targets ?? []).flatMap(target => Object.values(target)),
+      ];
+      for (const accessorIndex of accessors) {
+        if (!Number.isInteger(accessorIndex)) continue;
+        const view = document.accessors?.[accessorIndex]?.bufferView;
+        if (Number.isInteger(view)) geometryViews.add(view);
+      }
+    }
+  }
+  for (const viewIndex of geometryViews) {
+    geometryBufferBytes += document.bufferViews?.[viewIndex]?.byteLength ?? 0;
   }
 
   const materialsCount = document.materials?.length ?? 0;
@@ -203,7 +222,11 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("Profiling failed:", err);
-  process.exit(1);
-});
+export { parseGlbDocument, analyzeGlb };
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main().catch((err) => {
+    console.error("Profiling failed:", err);
+    process.exitCode = 1;
+  });
+}
