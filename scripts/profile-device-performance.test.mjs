@@ -87,6 +87,30 @@ test("accepts a correctly encoded binary chunk after the JSON document", () => {
   assert.equal(parseGlbDocument(full, "valid-bin.glb").asset.version, "2.0");
 });
 
+test("geometry budget counts triangle strips and fans, not just TRIANGLES", () => {
+  const doc = {
+    meshes: [{
+      primitives: [
+        { mode: 4, attributes: { POSITION: 0 } },
+        { mode: 5, indices: 1, attributes: { POSITION: 2 } },
+        { mode: 6, attributes: { POSITION: 3 } },
+        { mode: 1, indices: 4, attributes: { POSITION: 5 } },
+      ],
+    }],
+    accessors: [
+      { count: 9 },   // TRIANGLES: 3
+      { count: 7 },   // STRIP: 5
+      { count: 7 },
+      { count: 6 },   // FAN: 4
+      { count: 60 },  // LINES: zero triangles
+      { count: 60 },
+    ],
+  };
+  const profile = analyzeGlb(doc, 5000, "mixed-primitive.glb");
+  assert.equal(profile.triangles, 12);
+  assert.equal(profile.vertices, 9 + 7 + 6 + 60);
+});
+
 test("geometry estimate deduplicates mesh views and excludes embedded texture bytes", () => {
   const doc = {
     meshes: [{
