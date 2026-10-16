@@ -19,22 +19,30 @@ function parseGlbDocument(bytes, filePath) {
     `${filePath}: declared GLB file length disagrees with actual bytes`);
 
   let offset = 12;
+  let chunkNumber = 0;
+  let document = null;
   while (offset < bytes.byteLength) {
     assert(offset + 8 <= bytes.byteLength, `${filePath}: truncated GLB chunk header`);
     const chunkLength = bytes.readUInt32LE(offset);
     const chunkType = bytes.readUInt32LE(offset + 4);
+    assert(chunkLength % 4 === 0, `${filePath}: GLB chunk must be four-byte aligned`);
+    assert(chunkNumber !== 0 || chunkType === GLB_JSON_CHUNK,
+      `${filePath}: the first GLB chunk must be JSON`);
     offset += 8;
     assert(offset + chunkLength <= bytes.byteLength, `${filePath}: GLB chunk is out of range`);
 
     const chunk = bytes.subarray(offset, offset + chunkLength);
     offset += chunkLength;
+    chunkNumber += 1;
 
     if (chunkType === GLB_JSON_CHUNK) {
-      return JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
+      assert(document === null, `${filePath}: duplicate GLB JSON chunk`);
+      document = JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
     }
   }
 
-  throw new Error(`${filePath}: missing GLB JSON chunk`);
+  assert(document !== null, `${filePath}: missing GLB JSON chunk`);
+  return document;
 }
 
 function analyzeGlb(document, byteLength, filename) {
