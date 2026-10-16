@@ -111,6 +111,26 @@ test("geometry budget counts triangle strips and fans, not just TRIANGLES", () =
   assert.equal(profile.vertices, 9 + 7 + 6 + 60);
 });
 
+test("geometry estimate includes sparse accessor buffers without double counting", () => {
+  const doc = {
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
+    accessors: [
+      { count: 4, sparse: { count: 2, indices: { bufferView: 2 }, values: { bufferView: 3 } } },
+      { count: 6, bufferView: 0 },
+    ],
+    bufferViews: [
+      { byteLength: 12 }, // main indices
+      { byteLength: 4096 }, // unrelated embedded image
+      { byteLength: 8 }, // sparse override indices
+      { byteLength: 24 }, // sparse override positions
+    ],
+    images: [{ bufferView: 1 }],
+  };
+  const result = analyzeGlb(doc, 5000, "sparse-mesh.glb");
+  assert.equal(result.triangles, 2);
+  assert.equal(result.geometryBufferKb, (44 / 1024).toFixed(1) + " KB");
+});
+
 test("geometry estimate deduplicates mesh views and excludes embedded texture bytes", () => {
   const doc = {
     meshes: [{
