@@ -53,25 +53,18 @@ function analyzeGlb(document, byteLength, filename) {
   for (const mesh of document.meshes ?? []) {
     for (const primitive of mesh.primitives ?? []) {
       const mode = primitive.mode ?? 4;
-      if (mode !== 4) continue;
-
-      if (primitive.indices !== undefined) {
-        const accessor = document.accessors?.[primitive.indices];
-        if (accessor) {
-          triangles += Math.floor(accessor.count / 3);
-        }
-      }
-
-      const positionIdx = primitive.attributes?.POSITION;
-      if (positionIdx !== undefined) {
-        const posAccessor = document.accessors?.[positionIdx];
-        if (posAccessor) {
-          vertices += posAccessor.count;
-          if (primitive.indices === undefined) {
-            triangles += Math.floor(posAccessor.count / 3);
-          }
-        }
-      }
+      const indexCount = primitive.indices === undefined
+        ? null
+        : document.accessors?.[primitive.indices]?.count ?? null;
+      const positionCount = primitive.attributes?.POSITION === undefined
+        ? null
+        : document.accessors?.[primitive.attributes.POSITION]?.count ?? null;
+      if (positionCount !== null) vertices += positionCount;
+      const count = indexCount ?? positionCount ?? 0;
+      // glTF supports TRIANGLES (4), TRIANGLE_STRIP (5) and TRIANGLE_FAN
+      // (6). Ignoring strips/fans would underreport the geometry budget.
+      if (mode === 4) triangles += Math.floor(count / 3);
+      if (mode === 5 || mode === 6) triangles += Math.max(0, count - 2);
     }
   }
 
