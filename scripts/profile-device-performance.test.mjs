@@ -128,6 +128,9 @@ test("geometry estimate includes sparse accessor buffers without double counting
   };
   const result = analyzeGlb(doc, 5000, "sparse-mesh.glb");
   assert.equal(result.triangles, 2);
+  // Exact bytes are required: rounding small sparse buffers to "0.0 KB"
+  // would make this regression test pass even if the buffers were missing.
+  assert.equal(result.geometryBufferBytes, 44);
   assert.equal(result.geometryBufferKb, (44 / 1024).toFixed(1) + " KB");
 });
 
@@ -157,6 +160,7 @@ test("geometry estimate deduplicates mesh views and excludes embedded texture by
   };
   const profile = analyzeGlb(doc, 4200, "fixture.glb");
   assert.equal(profile.triangles, 4);
+  assert.equal(profile.geometryBufferBytes, 60);
   assert.equal(profile.geometryBufferKb, (60 / 1024).toFixed(1) + " KB");
   assert.equal(profile.imagesCount, 1);
 });
