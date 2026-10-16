@@ -126,6 +126,7 @@ function analyzeGlb(document, byteLength, filename) {
     materialsCount,
     texturesCount,
     imagesCount,
+    geometryBufferBytes,
     geometryBufferKb: (geometryBufferBytes / 1024).toFixed(1) + " KB",
     estimatedGpuVramMb: (totalEstimatedVram / (1024 * 1024)).toFixed(2) + " MB",
     recommendedTier,
