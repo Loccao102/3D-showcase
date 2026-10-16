@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
@@ -14,24 +15,34 @@ function parseGlbDocument(bytes, filePath) {
   assert(bytes.byteLength >= 20, `${filePath}: GLB is too small`);
   assert(bytes.readUInt32LE(0) === GLB_MAGIC, `${filePath}: invalid GLB magic`);
   assert(bytes.readUInt32LE(4) === 2, `${filePath}: GLB version must be 2`);
+  assert(bytes.readUInt32LE(8) === bytes.byteLength,
+    `${filePath}: declared GLB file length disagrees with actual bytes`);
 
   let offset = 12;
+  let chunkNumber = 0;
+  let document = null;
   while (offset < bytes.byteLength) {
     assert(offset + 8 <= bytes.byteLength, `${filePath}: truncated GLB chunk header`);
     const chunkLength = bytes.readUInt32LE(offset);
     const chunkType = bytes.readUInt32LE(offset + 4);
+    assert(chunkLength % 4 === 0, `${filePath}: GLB chunk must be four-byte aligned`);
+    assert(chunkNumber !== 0 || chunkType === GLB_JSON_CHUNK,
+      `${filePath}: the first GLB chunk must be JSON`);
     offset += 8;
     assert(offset + chunkLength <= bytes.byteLength, `${filePath}: GLB chunk is out of range`);
 
     const chunk = bytes.subarray(offset, offset + chunkLength);
     offset += chunkLength;
+    chunkNumber += 1;
 
     if (chunkType === GLB_JSON_CHUNK) {
-      return JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
+      assert(document === null, `${filePath}: duplicate GLB JSON chunk`);
+      document = JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
     }
   }
 
-  throw new Error(`${filePath}: missing GLB JSON chunk`);
+  assert(document !== null, `${filePath}: missing GLB JSON chunk`);
+  return document;
 }
 
 function analyzeGlb(document, byteLength, filename) {
@@ -42,31 +53,51 @@ function analyzeGlb(document, byteLength, filename) {
   for (const mesh of document.meshes ?? []) {
     for (const primitive of mesh.primitives ?? []) {
       const mode = primitive.mode ?? 4;
-      if (mode !== 4) continue;
+      const indexCount = primitive.indices === undefined
+        ? null
+        : document.accessors?.[primitive.indices]?.count ?? null;
+      const positionCount = primitive.attributes?.POSITION === undefined
+        ? null
+        : document.accessors?.[primitive.attributes.POSITION]?.count ?? null;
+      if (positionCount !== null) vertices += positionCount;
+      const count = indexCount ?? positionCount ?? 0;
+      // glTF supports TRIANGLES (4), TRIANGLE_STRIP (5) and TRIANGLE_FAN
+      // (6). Ignoring strips/fans would underreport the geometry budget.
+      if (mode === 4) triangles += Math.floor(count / 3);
+      if (mode === 5 || mode === 6) triangles += Math.max(0, count - 2);
+    }
+  }
 
-      if (primitive.indices !== undefined) {
-        const accessor = document.accessors?.[primitive.indices];
-        if (accessor) {
-          triangles += Math.floor(accessor.count / 3);
+  // Only count buffer views reachable from mesh accessors. Summing every
+  // buffer view incorrectly included embedded image textures as geometry.
+  const geometryViews = new Set();
+  for (const mesh of document.meshes ?? []) {
+    for (const primitive of mesh.primitives ?? []) {
+      const accessors = [
+        primitive.indices,
+        ...Object.values(primitive.attributes ?? {}),
+        ...(primitive.targets ?? []).flatMap(target => Object.values(target)),
+      ];
+      for (const accessorIndex of accessors) {
+        if (!Number.isInteger(accessorIndex)) continue;
+        const accessor = document.accessors?.[accessorIndex];
+        if (Number.isInteger(accessor?.bufferView)) {
+          geometryViews.add(accessor.bufferView);
         }
-      }
-
-      const positionIdx = primitive.attributes?.POSITION;
-      if (positionIdx !== undefined) {
-        const posAccessor = document.accessors?.[positionIdx];
-        if (posAccessor) {
-          vertices += posAccessor.count;
-          if (primitive.indices === undefined) {
-            triangles += Math.floor(posAccessor.count / 3);
-          }
+        // Sparse glTF accessors store geometry overrides in separate index
+        // and value buffers. Omitting those buffers undercounts GPU geometry.
+        const sparse = accessor?.sparse;
+        if (Number.isInteger(sparse?.indices?.bufferView)) {
+          geometryViews.add(sparse.indices.bufferView);
+        }
+        if (Number.isInteger(sparse?.values?.bufferView)) {
+          geometryViews.add(sparse.values.bufferView);
         }
       }
     }
   }
-
-  // Calculate uncompressed geometry buffer sizes
-  for (const bufferView of document.bufferViews ?? []) {
-    geometryBufferBytes += bufferView.byteLength ?? 0;
+  for (const viewIndex of geometryViews) {
+    geometryBufferBytes += document.bufferViews?.[viewIndex]?.byteLength ?? 0;
   }
 
   const materialsCount = document.materials?.length ?? 0;
@@ -95,6 +126,7 @@ function analyzeGlb(document, byteLength, filename) {
     materialsCount,
     texturesCount,
     imagesCount,
+    geometryBufferBytes,
     geometryBufferKb: (geometryBufferBytes / 1024).toFixed(1) + " KB",
     estimatedGpuVramMb: (totalEstimatedVram / (1024 * 1024)).toFixed(2) + " MB",
     recommendedTier,
@@ -120,12 +152,42 @@ async function main() {
   ];
 
   const results = [];
+  const contracts = JSON.parse(await readFile(
+    resolve(process.cwd(), "scripts/showcase-asset-contracts.json"), "utf8"
+  ));
+  const budgetByFilename = new Map(
+    contracts.assets.map(contract => [contract.path.split("/").at(-1), contract])
+  );
+  const budgetFailures = [];
 
   for (const filename of files) {
     const fullPath = resolve(process.cwd(), "apps/web/public/models", filename);
     const bytes = await readFile(fullPath);
     const doc = parseGlbDocument(bytes, filename);
     const profile = analyzeGlb(doc, bytes.byteLength, filename);
+    const contract = budgetByFilename.get(filename);
+    if (contract) {
+      const failures = [];
+      if (bytes.byteLength > contract.maxFileBytes) {
+        failures.push(`file size ${bytes.byteLength} exceeds ${contract.maxFileBytes}`);
+      }
+      if (profile.triangles > contract.maxTriangles) {
+        failures.push(`triangles ${profile.triangles} exceeds ${contract.maxTriangles}`);
+      }
+      profile.budget = {
+        status: failures.length === 0 ? "pass" : "fail",
+        maxFileBytes: contract.maxFileBytes,
+        maxTriangles: contract.maxTriangles,
+        failures
+      };
+      if (failures.length > 0) {
+        budgetFailures.push(`${filename}: ${failures.join(", ")}`);
+      }
+    } else {
+      // Furniture lacks explicit asset contract budgets; do not claim pass
+      // simply because the profiler finished reading the file.
+      profile.budget = { status: "not-contracted" };
+    }
     results.push(profile);
   }
 
@@ -139,6 +201,7 @@ async function main() {
       Materials: r.materialsCount,
       "VRAM Est.": r.estimatedGpuVramMb,
       "Target Tier": r.recommendedTier,
+      "Budget": r.budget.status,
     }))
   );
 
@@ -149,6 +212,9 @@ async function main() {
     summary: {
       totalTrianglesLod0: results.filter(r => r.file.includes("lod0")).reduce((sum, r) => sum + r.triangles, 0),
       totalDiskBytes: results.reduce((sum, r) => sum + r.fileSizeBytes, 0),
+      budgetedAssets: results.filter(r => r.budget.status !== "not-contracted").length,
+      unbudgetedAssets: results.filter(r => r.budget.status === "not-contracted").map(r => r.file),
+      budgetViolations: budgetFailures,
       tierDistribution: {
         tier1: results.filter(r => r.recommendedTier.includes("Tier 1")).length,
         tier2: results.filter(r => r.recommendedTier.includes("Tier 2")).length,
@@ -163,10 +229,17 @@ async function main() {
   await writeFile(outputPath, JSON.stringify(report, null, 2), "utf8");
 
   console.log(`\n✓ Performance profile audit successfully written to: ${outputPath}`);
-  console.log("✓ All 9 LOD assets conform to cross-device rendering budget limits.");
+  console.log(`Contract budgets: ${results.filter(r => r.budget.status === "pass").length} pass, ${budgetFailures.length} fail, ${results.filter(r => r.budget.status === "not-contracted").length} not assessed.`);
+  if (budgetFailures.length) {
+    throw new Error("Production asset budgets exceeded: " + budgetFailures.join(" | "));
+  }
 }
 
-main().catch((err) => {
-  console.error("Profiling failed:", err);
-  process.exit(1);
-});
+export { parseGlbDocument, analyzeGlb };
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main().catch((err) => {
+    console.error("Profiling failed:", err);
+    process.exitCode = 1;
+  });
+}

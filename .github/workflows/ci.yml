@@ -59,6 +59,12 @@ jobs:
       - name: Validate showcase assets
         run: pnpm validate:assets:production
 
+      - name: Validate GLB parser and geometry accounting
+        run: node --test scripts/profile-device-performance.test.mjs
+
+      - name: Profile all nine assets and enforce contracted budgets
+        run: pnpm benchmark:assets
+
       - name: Typecheck
         run: pnpm typecheck
 
