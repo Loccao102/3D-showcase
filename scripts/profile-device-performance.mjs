@@ -46,6 +46,17 @@ function parseGlbDocument(bytes, filePath) {
 }
 
 function analyzeGlb(document, byteLength, filename) {
+  // A malformed accessor can otherwise silently contribute zero triangles
+  // and make an oversized or corrupted asset appear to satisfy its budget.
+  const accessorAt = (index) => {
+    assert(Number.isSafeInteger(index) && index >= 0,
+      `${filename}: invalid mesh accessor index ${String(index)}`);
+    const accessor = document.accessors?.[index];
+    assert(accessor && Number.isSafeInteger(accessor.count) && accessor.count >= 0,
+      `${filename}: missing or invalid mesh accessor count at index ${index}`);
+    return accessor;
+  };
+
   let triangles = 0;
   let vertices = 0;
   let geometryBufferBytes = 0;
@@ -55,10 +66,10 @@ function analyzeGlb(document, byteLength, filename) {
       const mode = primitive.mode ?? 4;
       const indexCount = primitive.indices === undefined
         ? null
-        : document.accessors?.[primitive.indices]?.count ?? null;
+        : accessorAt(primitive.indices).count;
       const positionCount = primitive.attributes?.POSITION === undefined
         ? null
-        : document.accessors?.[primitive.attributes.POSITION]?.count ?? null;
+        : accessorAt(primitive.attributes.POSITION).count;
       if (positionCount !== null) vertices += positionCount;
       const count = indexCount ?? positionCount ?? 0;
       // glTF supports TRIANGLES (4), TRIANGLE_STRIP (5) and TRIANGLE_FAN
@@ -79,9 +90,11 @@ function analyzeGlb(document, byteLength, filename) {
         ...(primitive.targets ?? []).flatMap(target => Object.values(target)),
       ];
       for (const accessorIndex of accessors) {
-        if (!Number.isInteger(accessorIndex)) continue;
-        const accessor = document.accessors?.[accessorIndex];
-        if (Number.isInteger(accessor?.bufferView)) {
+        if (accessorIndex === undefined) continue;
+        const accessor = accessorAt(accessorIndex);
+        if (accessor.bufferView !== undefined) {
+          assert(Number.isSafeInteger(accessor.bufferView) && accessor.bufferView >= 0,
+            `${filename}: invalid mesh buffer view index`);
           geometryViews.add(accessor.bufferView);
         }
         // Sparse glTF accessors store geometry overrides in separate index
@@ -97,7 +110,10 @@ function analyzeGlb(document, byteLength, filename) {
     }
   }
   for (const viewIndex of geometryViews) {
-    geometryBufferBytes += document.bufferViews?.[viewIndex]?.byteLength ?? 0;
+    const view = document.bufferViews?.[viewIndex];
+    assert(view && Number.isSafeInteger(view.byteLength) && view.byteLength >= 0,
+      `${filename}: missing or invalid geometry buffer view at index ${viewIndex}`);
+    geometryBufferBytes += view.byteLength;
   }
 
   const materialsCount = document.materials?.length ?? 0;
