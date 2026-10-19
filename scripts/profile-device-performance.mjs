@@ -21,6 +21,7 @@ function parseGlbDocument(bytes, filePath) {
   let offset = 12;
   let chunkNumber = 0;
   let document = null;
+  let sawJsonChunk = false;
   while (offset < bytes.byteLength) {
     assert(offset + 8 <= bytes.byteLength, `${filePath}: truncated GLB chunk header`);
     const chunkLength = bytes.readUInt32LE(offset);
@@ -36,12 +37,13 @@ function parseGlbDocument(bytes, filePath) {
     chunkNumber += 1;
 
     if (chunkType === GLB_JSON_CHUNK) {
-      assert(document === null, `${filePath}: duplicate GLB JSON chunk`);
+      assert(!sawJsonChunk, `${filePath}: duplicate GLB JSON chunk`);
+      sawJsonChunk = true;
       document = JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
     }
   }
 
-  assert(document !== null, `${filePath}: missing GLB JSON chunk`);
+  assert(sawJsonChunk, `${filePath}: missing GLB JSON chunk`);
   // A parseable JSON chunk is not necessarily a valid glTF asset. Reject
   // unrelated or unsupported JSON instead of reporting tiny triangle counts.
   assert(document && typeof document === "object" && !Array.isArray(document)
