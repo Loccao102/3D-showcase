@@ -87,6 +87,30 @@ test("accepts a correctly encoded binary chunk after the JSON document", () => {
   assert.equal(parseGlbDocument(full, "valid-bin.glb").asset.version, "2.0");
 });
 
+test("rejects unrelated JSON documents and unsupported glTF asset versions", () => {
+  for (const value of [[], null, {}, { asset: { version: "1.0" } }, { asset: { version: "2.1" } }]) {
+    assert.throws(
+      () => parseGlbDocument(glb(value), "not-gltf.glb"),
+      /glTF asset version 2.0/
+    );
+  }
+});
+
+test("unknown geometry primitive modes must not escape the triangle budget", () => {
+  for (const invalidMode of [-1, 7, 10, 4.5, "4"]) {
+    assert.throws(() => analyzeGlb({
+      meshes: [{ primitives: [{ mode: invalidMode, attributes: { POSITION: 0 } }] }],
+      accessors: [{ count: 300000 }]
+    }, 1000, "bad-mode.glb"), /invalid glTF primitive mode/);
+  }
+  for (const nonTriangleMode of [0, 1, 2, 3]) {
+    assert.equal(analyzeGlb({
+      meshes: [{ primitives: [{ mode: nonTriangleMode, attributes: { POSITION: 0 } }] }],
+      accessors: [{ count: 6 }]
+    }, 1000, "lines-or-points.glb").triangles, 0);
+  }
+});
+
 test("geometry budget counts triangle strips and fans, not just TRIANGLES", () => {
   const doc = {
     meshes: [{
