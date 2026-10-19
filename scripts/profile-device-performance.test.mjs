@@ -164,3 +164,29 @@ test("geometry estimate deduplicates mesh views and excludes embedded texture by
   assert.equal(profile.geometryBufferKb, (60 / 1024).toFixed(1) + " KB");
   assert.equal(profile.imagesCount, 1);
 });
+
+
+test("rejects bad accessor references and geometry byte lengths instead of undercounting", () => {
+  const profile = doc => analyzeGlb(doc, 4096, "broken-mesh.glb");
+  assert.throws(() => profile({
+    meshes: [{ primitives: [{ indices: 4, attributes: { POSITION: 0 } }] }],
+    accessors: [{ count: 12 }],
+  }), /missing or invalid mesh accessor count/);
+
+  assert.throws(() => profile({
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    accessors: [{ count: -100 }],
+  }), /missing or invalid mesh accessor count/);
+
+  assert.throws(() => profile({
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    accessors: [{ count: 12, bufferView: 3 }],
+    bufferViews: [{ byteLength: 48 }],
+  }), /missing or invalid geometry buffer view/);
+
+  assert.throws(() => profile({
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    accessors: [{ count: 12, bufferView: 0 }],
+    bufferViews: [{ byteLength: -48 }],
+  }), /missing or invalid geometry buffer view/);
+});
