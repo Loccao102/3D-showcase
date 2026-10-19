@@ -190,3 +190,35 @@ test("rejects bad accessor references and geometry byte lengths instead of under
     bufferViews: [{ byteLength: -48 }],
   }), /missing or invalid geometry buffer view/);
 });
+
+test("sparse geometry cannot bypass asset accounting with malformed view indices", () => {
+  const base = {
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    bufferViews: [{ byteLength: 64 }, { byteLength: 16 }, { byteLength: 24 }],
+    accessors: [{
+      count: 12,
+      bufferView: 0,
+      sparse: { count: 2, indices: { bufferView: 1 }, values: { bufferView: 2 } },
+    }],
+  };
+  const analyze = document => analyzeGlb(document, 500, "sparse-check.glb");
+  assert.equal(analyze(base).geometryBufferBytes, 104);
+
+  for (const count of [-1, 13, 1.2]) {
+    const broken = structuredClone(base);
+    broken.accessors[0].sparse.count = count;
+    assert.throws(() => analyze(broken), /invalid sparse accessor count/);
+  }
+  for (const part of ["indices", "values"]) {
+    const missing = structuredClone(base);
+    delete missing.accessors[0].sparse[part].bufferView;
+    assert.throws(() => analyze(missing), new RegExp(`missing or invalid sparse ${part} buffer view`));
+
+    const invalid = structuredClone(base);
+    invalid.accessors[0].sparse[part].bufferView = -1;
+    assert.throws(() => analyze(invalid), /missing or invalid sparse/);
+  }
+  const outOfRange = structuredClone(base);
+  outOfRange.accessors[0].sparse.values.bufferView = 99;
+  assert.throws(() => analyze(outOfRange), /missing or invalid geometry buffer view/);
+});
