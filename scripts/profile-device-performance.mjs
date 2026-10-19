@@ -42,6 +42,11 @@ function parseGlbDocument(bytes, filePath) {
   }
 
   assert(document !== null, `${filePath}: missing GLB JSON chunk`);
+  // A parseable JSON chunk is not necessarily a valid glTF asset. Reject
+  // unrelated or unsupported JSON instead of reporting tiny triangle counts.
+  assert(document && typeof document === "object" && !Array.isArray(document)
+    && document.asset?.version === "2.0",
+    `${filePath}: GLB JSON must contain glTF asset version 2.0`);
   return document;
 }
 
@@ -64,6 +69,10 @@ function analyzeGlb(document, byteLength, filename) {
   for (const mesh of document.meshes ?? []) {
     for (const primitive of mesh.primitives ?? []) {
       const mode = primitive.mode ?? 4;
+      // The glTF primitive modes are integer enums 0..6. Unsupported modes
+      // would silently bypass triangle accounting and pass an asset budget.
+      assert(Number.isSafeInteger(mode) && mode >= 0 && mode <= 6,
+        `${filename}: invalid glTF primitive mode`);
       const indexCount = primitive.indices === undefined
         ? null
         : accessorAt(primitive.indices).count;
