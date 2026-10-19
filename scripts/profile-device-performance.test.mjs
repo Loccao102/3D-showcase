@@ -96,6 +96,17 @@ test("rejects unrelated JSON documents and unsupported glTF asset versions", () 
   }
 });
 
+test("null JSON chunk followed by another JSON chunk is still a duplicate", () => {
+  const nullDocument = glb(null);
+  const validDocument = glb({ asset: { version: "2.0" } });
+  const duplicate = Buffer.concat([nullDocument, validDocument.subarray(12)]);
+  duplicate.writeUInt32LE(duplicate.byteLength, 8);
+  assert.throws(
+    () => parseGlbDocument(duplicate, "duplicate-null.glb"),
+    /duplicate GLB JSON chunk/
+  );
+});
+
 test("unknown geometry primitive modes must not escape the triangle budget", () => {
   for (const invalidMode of [-1, 7, 10, 4.5, "4"]) {
     assert.throws(() => analyzeGlb({
