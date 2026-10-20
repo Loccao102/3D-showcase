@@ -173,6 +173,34 @@ function analyzeGlb(document, byteLength, filename) {
   };
 }
 
+function validateProfileContracts(files, contracts) {
+  assert(Array.isArray(contracts?.assets),
+    "Asset budget contracts must provide an assets array");
+  const budgets = new Map();
+  for (const contract of contracts.assets) {
+    assert(contract && typeof contract.path === "string" && contract.path.trim(),
+      "Asset budget contract has an invalid path");
+    const filename = contract.path.split("/").at(-1);
+    assert(!budgets.has(filename),
+      `Duplicate asset budget contract for ${filename}`);
+    assert(Number.isSafeInteger(contract.maxFileBytes) && contract.maxFileBytes > 0,
+      `${filename}: contract must specify positive maxFileBytes`);
+    assert(Number.isSafeInteger(contract.maxTriangles) && contract.maxTriangles >= 0,
+      `${filename}: contract must specify nonnegative maxTriangles`);
+    budgets.set(filename, contract);
+  }
+
+  for (const filename of files) {
+    // Vehicle models have established performance budgets. Furniture can be
+    // profiled without a contract, but a missing car budget must fail CI.
+    if (filename.startsWith("astra-one-")) {
+      assert(budgets.has(filename),
+        `${filename}: missing required vehicle asset budget contract`);
+    }
+  }
+  return budgets;
+}
+
 async function main() {
   console.log("================================================================================");
   console.log(" 3D SHOWCASE ENGINE — DEVICE PERFORMANCE & ASSET PROFILER");
@@ -195,9 +223,7 @@ async function main() {
   const contracts = JSON.parse(await readFile(
     resolve(process.cwd(), "scripts/showcase-asset-contracts.json"), "utf8"
   ));
-  const budgetByFilename = new Map(
-    contracts.assets.map(contract => [contract.path.split("/").at(-1), contract])
-  );
+  const budgetByFilename = validateProfileContracts(files, contracts);
   const budgetFailures = [];
 
   for (const filename of files) {
@@ -275,7 +301,7 @@ async function main() {
   }
 }
 
-export { parseGlbDocument, analyzeGlb };
+export { parseGlbDocument, analyzeGlb, validateProfileContracts };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch((err) => {
