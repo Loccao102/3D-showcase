@@ -87,6 +87,35 @@ test("accepts a correctly encoded binary chunk after the JSON document", () => {
   assert.equal(parseGlbDocument(full, "valid-bin.glb").asset.version, "2.0");
 });
 
+test("rejects a duplicate GLB BIN chunk or a BIN chunk after extensions", () => {
+  const json = glb({ asset: { version: "2.0" }, meshes: [] });
+  const binChunk = Buffer.alloc(12);
+  binChunk.writeUInt32LE(4, 0);
+  binChunk.writeUInt32LE(0x004e4942, 4);
+
+  const duplicate = Buffer.concat([json, binChunk, binChunk]);
+  duplicate.writeUInt32LE(duplicate.byteLength, 8);
+  assert.throws(
+    () => parseGlbDocument(duplicate, "duplicate-bin.glb"),
+    /duplicate or misplaced GLB BIN chunk/
+  );
+
+  const extensionChunk = Buffer.alloc(12);
+  extensionChunk.writeUInt32LE(4, 0);
+  extensionChunk.writeUInt32LE(0x12345678, 4);
+  const misplaced = Buffer.concat([json, extensionChunk, binChunk]);
+  misplaced.writeUInt32LE(misplaced.byteLength, 8);
+  assert.throws(
+    () => parseGlbDocument(misplaced, "misplaced-bin.glb"),
+    /duplicate or misplaced GLB BIN chunk/
+  );
+
+  // Unknown extension chunks after a valid BIN chunk remain permitted.
+  const allowed = Buffer.concat([json, binChunk, extensionChunk]);
+  allowed.writeUInt32LE(allowed.byteLength, 8);
+  assert.equal(parseGlbDocument(allowed, "extension.glb").asset.version, "2.0");
+});
+
 test("rejects unrelated JSON documents and unsupported glTF asset versions", () => {
   for (const value of [[], null, {}, { asset: { version: "1.0" } }, { asset: { version: "2.1" } }]) {
     assert.throws(
