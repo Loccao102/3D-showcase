@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
+const GLB_BIN_CHUNK = 0x004e4942;
 
 function assert(condition, message) {
   if (!condition) {
@@ -22,6 +23,7 @@ function parseGlbDocument(bytes, filePath) {
   let chunkNumber = 0;
   let document = null;
   let sawJsonChunk = false;
+  let sawBinChunk = false;
   while (offset < bytes.byteLength) {
     assert(offset + 8 <= bytes.byteLength, `${filePath}: truncated GLB chunk header`);
     const chunkLength = bytes.readUInt32LE(offset);
@@ -40,6 +42,12 @@ function parseGlbDocument(bytes, filePath) {
       assert(!sawJsonChunk, `${filePath}: duplicate GLB JSON chunk`);
       sawJsonChunk = true;
       document = JSON.parse(chunk.toString("utf8").replace(/[\u0000\u0020]+$/g, ""));
+    } else if (chunkType === GLB_BIN_CHUNK) {
+      // The glTF 2.0 binary body, when present, must be the second chunk.
+      // Other extension chunks may follow it, but cannot replace or duplicate it.
+      assert(!sawBinChunk && chunkNumber === 2,
+        `${filePath}: duplicate or misplaced GLB BIN chunk`);
+      sawBinChunk = true;
     }
   }
 
