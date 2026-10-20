@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseGlbDocument, analyzeGlb } from "./profile-device-performance.mjs";
+import { parseGlbDocument, analyzeGlb, validateProfileContracts } from "./profile-device-performance.mjs";
 
 function glb(json) {
   const data = Buffer.from(JSON.stringify(json));
@@ -14,6 +14,43 @@ function glb(json) {
   padded.copy(output, 20);
   return output;
 }
+
+test("required vehicle asset contracts cannot silently disappear or lose their budgets", () => {
+  const vehicle = "astra-one-sport-lod0.glb";
+  const furniture = "kroma-chair-lod0.glb";
+  const valid = {
+    path: "apps/web/public/models/" + vehicle,
+    maxFileBytes: 60000,
+    maxTriangles: 500,
+  };
+  assert.equal(
+    validateProfileContracts([vehicle, furniture], { assets: [valid] }).get(vehicle),
+    valid
+  );
+  assert.throws(
+    () => validateProfileContracts([vehicle, furniture], { assets: [] }),
+    /missing required vehicle asset budget contract/
+  );
+  assert.throws(
+    () => validateProfileContracts([vehicle], { assets: [valid, { ...valid }] }),
+    /Duplicate asset budget contract/
+  );
+  for (const broken of [
+    { ...valid, maxFileBytes: 0 },
+    { ...valid, maxTriangles: undefined },
+    { ...valid, maxTriangles: -5 },
+  ]) {
+    assert.throws(
+      () => validateProfileContracts([vehicle], { assets: [broken] }),
+      /contract must specify/
+    );
+  }
+  assert.equal(
+    validateProfileContracts([furniture], { assets: [] }).size,
+    0,
+    "unbudgeted furniture remains a supported audit outcome"
+  );
+});
 
 test("accepts valid GLB with an exact header length", () => {
   const bytes = glb({ asset: { version: "2.0" }, meshes: [] });
