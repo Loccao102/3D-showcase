@@ -24,6 +24,7 @@ function parseGlbDocument(bytes, filePath) {
   let document = null;
   let sawJsonChunk = false;
   let sawBinChunk = false;
+  let binChunkLength = null;
   while (offset < bytes.byteLength) {
     assert(offset + 8 <= bytes.byteLength, `${filePath}: truncated GLB chunk header`);
     const chunkLength = bytes.readUInt32LE(offset);
@@ -48,6 +49,7 @@ function parseGlbDocument(bytes, filePath) {
       assert(!sawBinChunk && chunkNumber === 2,
         `${filePath}: duplicate or misplaced GLB BIN chunk`);
       sawBinChunk = true;
+      binChunkLength = chunk.byteLength;
     }
   }
 
@@ -57,6 +59,19 @@ function parseGlbDocument(bytes, filePath) {
   assert(document && typeof document === "object" && !Array.isArray(document)
     && document.asset?.version === "2.0",
     `${filePath}: GLB JSON must contain glTF asset version 2.0`);
+  const embeddedBuffer = document.buffers?.[0];
+  if (embeddedBuffer && embeddedBuffer.uri === undefined) {
+    // The glTF 2.0 GLB buffer is held in the BIN chunk. Its chunk may
+    // contain up to three padding bytes, but may never omit declared bytes.
+    assert(Number.isSafeInteger(embeddedBuffer.byteLength) && embeddedBuffer.byteLength >= 0,
+      `${filePath}: invalid embedded buffer byteLength`);
+    if (embeddedBuffer.byteLength > 0) {
+      assert(binChunkLength !== null &&
+        binChunkLength >= embeddedBuffer.byteLength &&
+        binChunkLength <= embeddedBuffer.byteLength + 3,
+        `${filePath}: GLB BIN chunk does not match embedded buffer byteLength`);
+    }
+  }
   return document;
 }
 
