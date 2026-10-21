@@ -115,6 +115,47 @@ test("rejects BIN-first, unaligned and duplicate JSON chunks", () => {
   );
 });
 
+test("GLB embedded buffers need a BIN chunk with correct size and padding", () => {
+  const addBin = (json, byteLength) => {
+    const original = glb(json);
+    const binary = Buffer.alloc(8 + byteLength);
+    binary.writeUInt32LE(byteLength, 0);
+    binary.writeUInt32LE(0x004e4942, 4);
+    const output = Buffer.concat([original, binary]);
+    output.writeUInt32LE(output.byteLength, 8);
+    return output;
+  };
+  const declaredFour = { asset: { version: "2.0" }, buffers: [{ byteLength: 4 }] };
+
+  assert.throws(
+    () => parseGlbDocument(glb(declaredFour), "missing-bin.glb"),
+    /GLB BIN chunk does not match embedded buffer byteLength/
+  );
+  assert.throws(
+    () => parseGlbDocument(addBin({
+      asset: { version: "2.0" }, buffers: [{ byteLength: 8 }]
+    }, 4), "short-bin.glb"),
+    /GLB BIN chunk does not match embedded buffer byteLength/
+  );
+  assert.throws(
+    () => parseGlbDocument(addBin(declaredFour, 8), "oversized-bin.glb"),
+    /GLB BIN chunk does not match embedded buffer byteLength/
+  );
+  assert.equal(parseGlbDocument(
+    addBin(declaredFour, 4), "matching-bin.glb"
+  ).buffers[0].byteLength, 4);
+  assert.equal(parseGlbDocument(
+    addBin({ asset: { version: "2.0" }, buffers: [{ byteLength: 1 }] }, 4),
+    "padded-bin.glb"
+  ).buffers[0].byteLength, 1);
+  assert.throws(
+    () => parseGlbDocument(glb({
+      asset: { version: "2.0" }, buffers: [{ byteLength: -4 }]
+    }), "invalid-bin-length.glb"),
+    /invalid embedded buffer byteLength/
+  );
+});
+
 test("accepts a correctly encoded binary chunk after the JSON document", () => {
   const original = glb({ asset: { version: "2.0" } });
   const full = Buffer.concat([original, Buffer.alloc(8), Buffer.alloc(8)]);
